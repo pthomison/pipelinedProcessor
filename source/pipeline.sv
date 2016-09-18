@@ -1,7 +1,4 @@
 /*
-  Eric Villasenor
-  evillase@gmail.com
-
   pipeline top block
   holds data path components
   and cache level
