@@ -1,9 +1,5 @@
 /*
-  Eric Villasenor
-  evillase@gmail.com
-
-  this block is the coherence protocol
-  and artibtration for ram
+  Emily Fredette
 */
 
 // interface include
@@ -57,55 +53,53 @@ always_comb begin
 	ccif.iwait = 1;
 	ccif.ramstore = ccif.dstore;
 
-if (ccif.dREN) begin
-	ccif.ramaddr = ccif.daddr;
-	ccif.ramREN = 1;
-	ccif.ramWEN = 0;
+	if (ccif.dREN) begin
+		ccif.ramaddr = ccif.daddr;
+		ccif.ramREN = 1;
+		ccif.ramWEN = 0;
 
-	if (ccif.ramstate == ACCESS) begin
-		ccif.dwait = 0;
-		ccif.iwait = 1;
-	end
-	else begin
-		ccif.dwait = 1;
-		ccif.iwait = 1;
-	end
-	//ccif.dload = ccif.ramload;
+		if (ccif.ramstate == ACCESS) begin
+			ccif.dwait = 0;
+			ccif.iwait = 1;
+		end
+		else begin
+			ccif.dwait = 1;
+			ccif.iwait = 1;
+		end
 
 
-end
-else if (ccif.dWEN) begin
-	ccif.ramstore = ccif.dstore;
-	ccif.ramaddr = ccif.daddr;
-	ccif.ramREN = 0;
-	ccif.ramWEN = 1;
+	end
+	else if (ccif.dWEN) begin
+		ccif.ramstore = ccif.dstore;
+		ccif.ramaddr = ccif.daddr;
+		ccif.ramREN = 0;
+		ccif.ramWEN = 1;
 
-	if (ccif.ramstate == ACCESS) begin
-		ccif.dwait = 0;
-		ccif.iwait = 1;
-	end
-	else begin
-		ccif.dwait = 1;
-		ccif.iwait = 1;
-	end
-	//ccif.dload = ccif.ramload;
+		if (ccif.ramstate == ACCESS) begin
+			ccif.dwait = 0;
+			ccif.iwait = 1;
+		end
+		else begin
+			ccif.dwait = 1;
+			ccif.iwait = 1;
+		end
 
-end
-else if (ccif.iREN) begin
-	ccif.ramaddr = ccif.iaddr;
-	ccif.ramREN = 1;
-	ccif.ramWEN = 0;
 
-	if (ccif.ramstate == ACCESS) begin
-		ccif.dwait = 1;
-		ccif.iwait = 0;
 	end
-	else begin
-		ccif.dwait = 1;
-		ccif.iwait = 1;
+	else if (ccif.iREN) begin
+		ccif.ramaddr = ccif.iaddr;
+		ccif.ramREN = 1;
+		ccif.ramWEN = 0;
+
+		if (ccif.ramstate == ACCESS) begin
+			ccif.dwait = 1;
+			ccif.iwait = 0;
+		end
+		else begin
+			ccif.dwait = 1;
+			ccif.iwait = 1;
+		end
 	end
-	//ccif.iload = ccif.ramload;
-end
 
 
 

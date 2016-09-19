@@ -1,8 +1,5 @@
 /*
-  Eric Villasenor
-  evillase@gmail.com
-
-  register file test bench
+	Emily Fredette
 */
 
 // mapped needs this

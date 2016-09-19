@@ -12,18 +12,20 @@ interface pc_if;
 	// import types
 	import cpu_types_pkg::*;
 
-	logic	pcenable;
-	word_t  pcnext, pcout;
+	logic	pcenable, branch, BEQ, zero_f;
+  logic [1:0] pcsrc;
+  logic [15:0] immed;
+	word_t  pcout, immedEXT, rdat1;
 
   // file ports
   modport pc (
-    input   pcenable, pcnext,
+    input   pcenable, pcsrc, branch, BEQ, zero_f, immedEXT, rdat1, immed,
     output  pcout
   );
   // testbench ports 
   modport tb (
     input  pcout,
-    output  pcenable, pcnext
+    output   pcenable, pcsrc, branch, BEQ, zero_f, immedEXT, rdat1, immed
   );
 endinterface
 

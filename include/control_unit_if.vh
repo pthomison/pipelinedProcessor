@@ -16,17 +16,17 @@ interface control_unit_if;
 	logic [4:0] rs, rt, rd;
 	logic [15:0] immed;
 	aluop_t ALUop;
-	logic [1:0] ALUsrc, jump, RegDest;
+	logic [1:0] ALUsrc, pcsrc, RegDest;
 	word_t  instruction, shamt;
 
   // file ports
   modport cu (
     input   instruction,
-    output  ALUop, ALUsrc, branch, MemtoReg, WEN, RegDest, jump, jal, extop, dWEN, dREN, rs, rt, rd, immed, LUI, imemREN, shamt, BEQ, halt
+    output  ALUop, ALUsrc, branch, MemtoReg, WEN, RegDest, pcsrc, jal, extop, dWEN, dREN, rs, rt, rd, immed, LUI, imemREN, shamt, BEQ, halt
   );
   // testbench ports 
   modport tb (
-    input  ALUop, ALUsrc, branch, MemtoReg, WEN, RegDest, jump, jal, extop, dWEN, dREN, rs, rt, rd, immed, LUI, imemREN, shamt, BEQ, halt,
+    input  ALUop, ALUsrc, branch, MemtoReg, WEN, RegDest, pcsrc, jal, extop, dWEN, dREN, rs, rt, rd, immed, LUI, imemREN, shamt, BEQ, halt,
     output  instruction
   );
 endinterface

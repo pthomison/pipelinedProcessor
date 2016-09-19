@@ -1,15 +1,21 @@
 /*
+Patrick Thomison
+Emily Fredette
 generic pipeline register
 */
+`include "cpu_types_pkg.vh"
 
-module pipelineRegister (
+
+module pipeline_register (
 	input logic CLK, nRST,
 	pipeline_register_if prif
 );
 
-always_ff @(posedge CLK, negedge nRST, posedge flush)
+	import cpu_types_pkg::*;
+
+always_ff @(posedge CLK, negedge nRST, posedge prif.flush)
 begin
-	if (nRST == 0 || flush == 1) begin
+	if (nRST == 0 || prif.flush == 1) begin
 		prif.shamt_out <= 0;
 		prif.instruction_out <= 0;
 		prif.rdat1_out <= 0;
@@ -22,9 +28,9 @@ begin
 		prif.rt_out <= 0;
 		prif.rd_out <= 0;
 		prif.immed_out <= 0;
-		prif.ALUop_out <= 0;
+		prif.ALUop_out <= aluop_t'(0000);
 		prif.ALUsrc_out <= 0;
-		prif.pcSrc_out <= 0;
+		prif.pcsrc_out <= 0;
 		prif.RegDest_out <= 0;
 		prif.branch_out <= 0;
 		prif.MemtoReg_out <= 0;
@@ -54,7 +60,7 @@ begin
 			prif.immed_out <= prif.immed_in;
 			prif.ALUop_out <= prif.ALUop_in;
 			prif.ALUsrc_out <= prif.ALUsrc_in;
-			prif.pcSrc_out <= prif.pcSrc_in;
+			prif.pcsrc_out <= prif.pcsrc_in;
 			prif.RegDest_out <= prif.RegDest_in;
 			prif.branch_out <= prif.branch_in;
 			prif.MemtoReg_out <= prif.MemtoReg_in;
@@ -69,5 +75,6 @@ begin
 			prif.zero_f_out <= prif.zero_f_in;
 		end
 	end 
-
 end
+
+endmodule

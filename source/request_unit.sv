@@ -11,8 +11,6 @@ module request_unit (
   request_unit_if.ru ruif
 );
 
-assign ruif.pcenable = ruif.ihit;
-
 always_ff @(posedge CLK, negedge nRST) begin
 	if (!nRST) begin
 		ruif.dmemren = 0;

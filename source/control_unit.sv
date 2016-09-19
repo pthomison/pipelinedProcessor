@@ -32,41 +32,41 @@ module control_unit (
 	assign cuif.shamt = cuif.instruction[10:6];
 
 
-				//cuif.ALUop = ALU_SLL;
-				//cuif.PCsrc = 
-				//cuif.MemtoReg = 1 for ALU data - 0 for data from cache
-				//cuif.WEN = 
-				//cuif.jal = 1 for JAL instruction
-				//cuif.extop = 1 for signed - 0 for zero
-				//cuif.dWEN = 1 if writing data to memory
-				//cuif.dREN = 1 if reading data from memory
-				//cuif.LUI = 1 for LUI instruction
-				//cuif.imemREN = 
-				//cuif.BEQ = 1 if BEQ - 0 if 
-				//cuif.ALUsrc = 00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				//cuif.jump = 
-				//cuif.RegDest = 
+	//cuif.ALUop = ALU_SLL;
+	//cuif.PCsrc = 
+	//cuif.MemtoReg = 1 for ALU data - 0 for data from cache
+	//cuif.WEN = 
+	//cuif.jal = 1 for JAL instruction
+	//cuif.extop = 1 for signed - 0 for zero
+	//cuif.dWEN = 1 if writing data to memory
+	//cuif.dREN = 1 if reading data from memory
+	//cuif.LUI = 1 for LUI instruction
+	//cuif.imemREN = 
+	//cuif.BEQ = 1 if BEQ - 0 if 
+	//cuif.ALUsrc = 00 if rdat2 - 01 if extended Immediate - 10 if shamt
+	//cuif.pcsrc = 
+	//cuif.RegDest = 
 
 
 
 always_comb begin
-				//defaults
-				cuif.ALUop = ALU_SLL;
-				cuif.branch = 0; 	//1 if branching
-				cuif.MemtoReg = 0;	//1 for ALU data - 0 for data from cache
-				cuif.WEN = 0;		//1 if writing to a register - all RTYPE are 1 (except JR)
-				cuif.jal = 0; 		//1 for JAL instruction
-				cuif.extop = 0;		//1 for signed - 0 for zero
-				cuif.dWEN = 0;		//1 if writing data to memory
-				cuif.dREN = 0;		//1 if reading data from memory
-				cuif.LUI = 0;		//1 for LUI instruction
-				cuif.imemREN = 1;	//1 unless HALT
-				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
-				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
-				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
-				cuif.halt = 0;
 
+	//defaults
+	cuif.ALUop = ALU_SLL;
+	cuif.branch = 0; 	//1 if branching
+	cuif.MemtoReg = 0;	//1 for ALU data - 0 for data from cache
+	cuif.WEN = 0;		//1 if writing to a register - all RTYPE are 1 (except JR)
+	cuif.jal = 0; 		//1 for JAL instruction
+	cuif.extop = 0;		//1 for signed - 0 for zero
+	cuif.dWEN = 0;		//1 if writing data to memory
+	cuif.dREN = 0;		//1 if reading data from memory
+	cuif.LUI = 0;		//1 for LUI instruction
+	cuif.imemREN = 1;	//1 unless HALT
+	cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
+	cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
+	cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+	cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
+	cuif.halt = 0;
 
 casez (opcode) 
 
@@ -86,7 +86,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 10; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -104,7 +104,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 10; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -122,7 +122,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 01;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 01;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -140,7 +140,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -158,7 +158,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -176,7 +176,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -194,7 +194,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -212,7 +212,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -230,7 +230,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -248,7 +248,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -266,7 +266,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -284,7 +284,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -302,7 +302,7 @@ casez (opcode)
 				cuif.imemREN = 1;	//1 unless HALT
 				cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 				cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-				cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
 			end
@@ -329,7 +329,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 01; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 
@@ -348,7 +348,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 01; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 
@@ -367,7 +367,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 01; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 
@@ -386,7 +386,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 1; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 10;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 10;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 	end
@@ -404,7 +404,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 10;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 10;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 	end
@@ -422,7 +422,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 	end
@@ -440,7 +440,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 01; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 	end
@@ -458,7 +458,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 01; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 
@@ -477,13 +477,13 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 01; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 	end
 
 	SLTIU: begin
-		cuif.ALUop = ALU_SLT;
+		cuif.ALUop = ALU_SLTU;
 		cuif.branch = 0; 	//1 if branching
 		cuif.MemtoReg = 0;	//1 for ALU data - 0 for data from cache
 		cuif.WEN = 1;		//1 if writing to a register - all RTYPE are 1 (except JR)
@@ -495,7 +495,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 01; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 	end
@@ -513,7 +513,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 01; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 
@@ -532,7 +532,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 11;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 11;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 10;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 	end
@@ -550,7 +550,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 11;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 11;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 10;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
 	end
@@ -568,10 +568,9 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 01; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
-
 	end
 
 	HALT: begin
@@ -587,7 +586,7 @@ casez (opcode)
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE
 		cuif.ALUsrc = 00; 	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
-		cuif.jump = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 1;
 	end

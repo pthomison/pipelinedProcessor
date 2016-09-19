@@ -1,15 +1,15 @@
 /*
-  Eric Villasenor
-  evillase@gmail.com
+Patrick Thomison
+00256-74870
 
-  datapath contains register file, control, hazard,
-  muxes, and glue logic for processor
+Emily Fredette
+00257-26474
+
+datapath for pipeline
 */
 
 // data path interface
 `include "datapath_cache_if.vh"
-    //input   ihit, imemload, dhit, dmemload,
-    //output  halt, imemREN, imemaddr, dmemREN, dmemWEN, datomic, dmemstore, dmemaddr
 
 // alu op, mips op, and instruction type
 `include "cpu_types_pkg.vh"
@@ -19,6 +19,8 @@
 `include "control_unit_if.vh"
 `include "request_unit_if.vh"
 `include "alu_file_if.vh"
+`include "pipeline_register_if.vh"
+
 
 module datapath (
   input logic CLK, nRST,
@@ -35,11 +37,8 @@ module datapath (
 	word_t immedEXT;
 	word_t PCplus4;
 	logic temphalt;
-	//logic temp_
 
-
-
-	//5 interfaces
+	//interfaces
   	pc_if pcif();
   	request_unit_if ruif();
   	control_unit_if cuif();
@@ -54,19 +53,29 @@ module datapath (
 	alu_file ALU(aluif.af);
 
 	// Pipeline Registers
-	// pipeline_register_if ifid_plif ();
+	pipeline_register_if ifid_plif ();
 	// pipeline_register_if idex_plif ();
 	// pipeline_register_if exm_plif ();
 	// pipeline_register_if mwb_plif ();
 
-	// pipeline_register (CLK, nRST, ifid_plif);
-	// pipeline_register (CLK, nRST, idex_plif);
-	// pipeline_register (CLK, nRST, exm_plif);
-	// pipeline_register (CLK, nRST, mwb_plif);
+	pipeline_register IFID(CLK, nRST, ifid_plif);
+	// pipeline_register IDEX(CLK, nRST, idex_plif);
+	// pipeline_register EXM(CLK, nRST, exm_plif);
+	// pipeline_register MWB(CLK, nRST, mwb_plif);
 
 	assign PCplus4 = pcif.pcout + 4;
 
+
+
+
+
+
+
+
+
+	//
 	//Immediate Extend
+	//
 	always_comb begin
 		immedEXT = {16'h0000, cuif.immed};
 		if (cuif.extop == 0) begin
@@ -83,23 +92,29 @@ module datapath (
 
 
 
+
+
+
+
+
+
+
+
+
 	//
 	//DATAPATH 
 	//
-
+	//input   ihit, imemload, dhit, dmemload,
+    //output  halt, imemREN, imemaddr, dmemREN, dmemWEN, datomic, dmemstore, dmemaddr
 
 	assign dpif.imemREN = cuif.imemREN;
-
-	//assign dpif.halt = cuif.halt;
-
-
 	assign dpif.dmemREN = ruif.dmemren;
-	assign dpif.imemaddr = pcif.pcout; //pcout
+	assign dpif.imemaddr = pcif.pcout; 
 	assign dpif.dmemWEN = ruif.dmemwen;
-	assign dpif.dmemstore = rfif.rdat2; //rdat2
-	assign dpif.dmemaddr = aluif.outport; //output of ALU
+	assign dpif.dmemstore = rfif.rdat2; 
+	assign dpif.dmemaddr = aluif.outport; 
 
-
+	//HALT latch
 	always_ff @(posedge CLK, negedge nRST) begin
 		if (!nRST) begin
 			temphalt = 0;
@@ -112,47 +127,29 @@ module datapath (
 	assign dpif.halt = temphalt;
 
 
+
+
+
+
+
 	//
 	//PC BLOCK
 	//
 	//inputs pcenable, pcnext,
 	//output pcout
 
-	assign pcif.pcenable = ruif.pcenable;
-	
-	//PC 4 way mux
-	always_comb begin
-		pcif.pcnext = PCplus4;
-		if (cuif.jump == 00) begin
-			pcif.pcnext = PCplus4;
-		end
-		else if (cuif.jump == 01) begin
-			pcif.pcnext = rfif.rdat1;
-		end
-		else if (cuif.jump == 2'b10) begin
-			if (cuif.BEQ) begin
-				if (cuif.branch && aluif.zero_f) begin
-					pcif.pcnext = (immedEXT << 2) + PCplus4;
-				end
-				else begin
-					pcif.pcnext = PCplus4;
-				end
-			end
-			else begin
-				if (cuif.branch && aluif.zero_f) begin
-					pcif.pcnext = PCplus4;
-				end
-				else begin
-					pcif.pcnext = (immedEXT << 2) + PCplus4;
-				end
-			end
-		
+	assign pcif.branch = cuif.branch;
+	assign pcif.BEQ = cuif.BEQ;
+	assign pcif.zero_f = aluif.zero_f;
+	assign pcif.pcsrc = cuif.pcsrc;
+	assign pcif.immedEXT = immedEXT;
+	assign pcif.pcenable = dpif.ihit;
+	assign pcif.rdat1 = rfif.rdat1;
+	assign pcif.immed = cuif.immed;
 
-		end
-		else if (cuif.jump == 2'b11) begin
-			pcif.pcnext = {PCplus4[31:28], cuif.immed[15:0], 2'b00};
-		end
-	end
+
+
+
 
 
 
@@ -163,11 +160,21 @@ module datapath (
 	//REQUEST UNIT BLOCK
 	//
 	//inputs ihit, dhit, dwen, dren
-	//outputs dmemren, dmemwen, pcenable
+	//outputs dmemren, dmemwen
 	assign ruif.ihit = dpif.ihit;
 	assign ruif.dhit = dpif.dhit;
 	assign ruif.dwen = cuif.dWEN;
 	assign ruif.dren = cuif.dREN;
+
+
+
+
+
+
+
+
+
+
 
 		
 	//
@@ -183,19 +190,27 @@ module datapath (
 
 
 
+
+
+
+
+
+
+
+
 	//
 	//REGISTER FILE BLOCK
 	//
 
-	//RF inputs: WEN, wsel, rsel1, rsel2, wdat
+	//inputs: WEN, wsel, rsel1, rsel2, wdat
 	//output  rdat1, rdat2
 
 	assign rfif.WEN = cuif.WEN && (dpif.ihit || dpif.dhit);
 	assign rfif.rsel1 = cuif.rs;
 	assign rfif.rsel2 = cuif.rt;
-	//assign rfif.wdat = aluif.outport;
 
-	//LUI case
+	//wdat
+	//LUI, MemtoReg, JAL MUX
 	always_comb begin
 		rfif.wdat = {cuif.immed, 16'h0000};
 		if (cuif.LUI) begin
@@ -212,7 +227,8 @@ module datapath (
 		end
 	end
 
-	//Register File WSEL Mux
+	//wsel MUX
+	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 	always_comb begin
 		rfif.wsel = cuif.rd;
 		if (cuif.RegDest == 00) begin
@@ -247,9 +263,9 @@ module datapath (
 
 	assign aluif.porta = rfif.rdat1;
 	assign aluif.aluop = cuif.ALUop;
-	
-	
-	//ALU 3 way mux
+
+	//ALU src mux
+	//00 if rdat2 - 01 if extended Immediate - 10 if shamt
 	always_comb begin
 		aluif.portb = rfif.rdat2;
 		if (cuif.ALUsrc == 00) begin
