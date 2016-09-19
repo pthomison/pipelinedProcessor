@@ -54,17 +54,28 @@ module datapath (
 
 	// Pipeline Registers
 	pipeline_register_if ifid_plif ();
-	// pipeline_register_if idex_plif ();
-	// pipeline_register_if exm_plif ();
-	// pipeline_register_if mwb_plif ();
+	pipeline_register_if idex_plif ();
+	pipeline_register_if exm_plif ();
+	pipeline_register_if mwb_plif ();
 
 	pipeline_register IFID(CLK, nRST, ifid_plif);
-	// pipeline_register IDEX(CLK, nRST, idex_plif);
-	// pipeline_register EXM(CLK, nRST, exm_plif);
-	// pipeline_register MWB(CLK, nRST, mwb_plif);
+	pipeline_register IDEX(CLK, nRST, idex_plif);
+	pipeline_register EXM(CLK, nRST, exm_plif);
+	pipeline_register MWB(CLK, nRST, mwb_plif);
 
 	assign PCplus4 = pcif.pcout + 4;
 
+
+
+
+
+	//
+	//IFID Pipeline Register Assignments
+	//
+	assign ifid_plif.enable = 1;
+	assign ifid_plif.instruction_in = dpif.imemload;
+	assign ifid_plif.PCplus4_in = PCplus4;
+	assign cuif.instruction = ifid_plif.instruction_out;
 
 
 
@@ -182,7 +193,7 @@ module datapath (
 	//
 	//inputs instruction
 	//outputs
-	assign cuif.instruction = dpif.imemload;
+	//assign cuif.instruction = dpif.imemload;
 
 
 
