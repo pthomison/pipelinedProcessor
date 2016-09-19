@@ -53,9 +53,18 @@ module datapath (
   	register_file RF(CLK, nRST, rfif.rf);
 	alu_file ALU(aluif.af);
 
+	// Pipeline Registers
+	// pipeline_register_if ifid_plif ();
+	// pipeline_register_if idex_plif ();
+	// pipeline_register_if exm_plif ();
+	// pipeline_register_if mwb_plif ();
+
+	// pipeline_register (CLK, nRST, ifid_plif);
+	// pipeline_register (CLK, nRST, idex_plif);
+	// pipeline_register (CLK, nRST, exm_plif);
+	// pipeline_register (CLK, nRST, mwb_plif);
+
 	assign PCplus4 = pcif.pcout + 4;
-
-
 
 	//Immediate Extend
 	always_comb begin
@@ -69,6 +78,7 @@ module datapath (
 			immedEXT = $signed(cuif.immed);
 		end
 	end
+
 
 
 
