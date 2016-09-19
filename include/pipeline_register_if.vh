@@ -20,17 +20,17 @@ interface  pipeline_register_if;
 
 	logic flush, enable;
 
-	word_t shamt_in, instruction_in, rdat1_in, rdat2_in, PCplus4_in, outport_in, dmemload_in;
+	word_t instruction_in, rdat1_in, rdat2_in, PCplus4_in, outport_in, dmemload_in;
 	regbits_t wsel_in;
-	logic [4:0] rs_in, rt_in, rd_in;
+	logic [4:0] rs_in, rt_in, rd_in, shamt_in;
 	logic [15:0] immed_in;
 	aluop_t ALUop_in;
 	logic [1:0] ALUsrc_in, pcsrc_in, RegDest_in;
 	logic branch_in, MemtoReg_in, WEN_in, jal_in, extop_in, dWEN_in, dREN_in, LUI_in, BEQ_in, halt_in, zero_f_in;
 
-	word_t shamt_out, instruction_out, rdat1_out, rdat2_out, PCplus4_out, outport_out, dmemload_out;
+	word_t instruction_out, rdat1_out, rdat2_out, PCplus4_out, outport_out, dmemload_out;
 	regbits_t wsel_out;
-	logic [4:0] rs_out, rt_out, rd_out;
+	logic [4:0] rs_out, rt_out, rd_out, shamt_out;
 	logic [15:0] immed_out;
 	aluop_t ALUop_out;
 	logic [1:0] ALUsrc_out, pcsrc_out, RegDest_out;

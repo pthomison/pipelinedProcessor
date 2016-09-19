@@ -13,11 +13,11 @@ interface control_unit_if;
 	import cpu_types_pkg::*;
 
 	logic branch, MemtoReg, WEN, jal, extop, dWEN, dREN, LUI, imemREN, BEQ, halt;
-	logic [4:0] rs, rt, rd;
+	logic [4:0] rs, rt, rd, shamt;
 	logic [15:0] immed;
 	aluop_t ALUop;
 	logic [1:0] ALUsrc, pcsrc, RegDest;
-	word_t  instruction, shamt;
+	word_t  instruction;
 
   // file ports
   modport cu (

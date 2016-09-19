@@ -21,13 +21,16 @@ interface alu_file_if;
 	// import types
 	import cpu_types_pkg::*;
 
-	logic	neg_f, over_f, zero_f;
-	word_t	porta, portb, outport;
+	logic	neg_f, over_f, zero_f, extop;
+	word_t	porta, portb, outport, rdat2;
 	aluop_t	aluop;
+  logic [15:0] immed;
+  logic [4:0] shamt;
+  logic [1:0] ALUsrc;
 
   // alu file ports
   modport af (
-    input   porta, portb, aluop,
+    input   porta, portb, aluop, ALUsrc, shamt, extop, immed, rdat2,
     output  outport, neg_f, over_f, zero_f
   );
   // alu file tb

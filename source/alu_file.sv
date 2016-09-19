@@ -19,6 +19,23 @@ import cpu_types_pkg::*;
 always_comb begin
 //aluif.over_f = 0;
 
+		aluif.portb = aluif.rdat2;
+		if (aluif.ALUsrc == 00) begin
+			aluif.portb = aluif.rdat2;
+		end
+		else if (aluif.ALUsrc == 01) begin
+			case (aluif.extop) 
+				0: aluif.portb = {16'h0000, aluif.immed};
+				1: aluif.portb = $signed(aluif.immed);
+			endcase
+		end
+		else begin
+			aluif.portb = {16'h0000, aluif.shamt};
+		end
+
+
+
+
 
 casez(aluif.aluop)
 	ALU_SLL	: begin
