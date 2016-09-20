@@ -20,7 +20,7 @@ begin
 		prif.instruction_out <= 0;
 		prif.rdat1_out <= 0;
 		prif.rdat2_out <= 0;
-		prif.PCplus4_out <= 0;
+		prif.pcout_out <= 0;
 		prif.outport_out <= 0;
 		prif.dmemload_out <= 0;
 		prif.wsel_out <= 0;
@@ -50,7 +50,7 @@ begin
 			prif.instruction_out <= prif.instruction_in;
 			prif.rdat1_out <= prif.rdat1_in;
 			prif.rdat2_out <= prif.rdat2_in;
-			prif.PCplus4_out <= prif.PCplus4_in;
+			prif.pcout_out <= prif.pcout_in;
 			prif.outport_out <= prif.outport_in;
 			prif.dmemload_out <= prif.dmemload_in;
 			prif.wsel_out <= prif.wsel_in;

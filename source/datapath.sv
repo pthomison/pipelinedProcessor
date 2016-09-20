@@ -49,7 +49,7 @@ module datapath (
   	pc PC(CLK, nRST, pcif.pc);
   	request_unit RU(CLK, nRST, ruif.ru);
   	control_unit CU(cuif.cu);
-  	register_file RF(CLK, nRST, rfif.rf);
+  	register_file RF(!CLK, nRST, rfif.rf);
 	alu_file ALU(aluif.af);
 
 	// Pipeline Registers
@@ -63,39 +63,83 @@ module datapath (
 	pipeline_register EXM(CLK, nRST, exm_plif);
 	pipeline_register MWB(CLK, nRST, mwb_plif);
 
-	assign PCplus4 = pcif.pcout + 4;
+	//
+	// Instruction Fetch: PC Block
+	//
+	// inputs
+	assign pcif.pcenable = dpif.ihit;
+	assign pcif.pcsrc    = 0; // UPDATE FOR PC_CHG INSTR
+	
+	assign pcif.rdat1    = 0; // dc, UPDATE FOR PC_CHG INSTR
+	assign pcif.immed    = 0; // dc, UPDATE FOR PC_CHG INSTR
+	// assign pcif.branch   = 0; // dc, UPDATE FOR PC_CHG INSTR
+	// assign pcif.BEQ      = 0; // dc, UPDATE FOR PC_CHG INSTR
+	// assign pcif.zero_f   = 0; // dc, UPDATE FOR PC_CHG INSTR
+	assign pcif.immedEXT = 0; // dc, UPDATE FOR PC_CHG INSTR
 
-
-
-
+	assign dpif.imemREN = cuif.imemREN;
+	
+	// outputs
+	assign dpif.imemaddr = pcif.pcout;
 
 	//
 	//IFID Pipeline Register Assignments
 	//
 
-	// Control Signalsexm_plif
-	assign ifid_plif.enable = 1;
-	assign ifid_plif.flush  = 0;
+	// Control Signals
+	assign ifid_plif.enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;//1; // UPDATE FOR PC_CHG INSTR
+	assign ifid_plif.flush  = 0; // UPDATE FOR PC_CHG INSTR
 
 	// Input Assignments
 	assign ifid_plif.instruction_in = dpif.imemload;
-	assign ifid_plif.PCplus4_in     = PCplus4;
+	assign ifid_plif.pcout_in       = pcif.pcout;
 
-	// Output Assignments (Non Pipeline -> Pipeline)
-	assign cuif.instruction     = ifid_plif.instruction_out;
+	//
+	// Instruction Decode: Control Unit, Register File
+	//
+
+	assign cuif.instruction = ifid_plif.instruction_out;
+
+	assign rfif.rsel1 = cuif.rs;
+	assign rfif.rsel2 = cuif.rt;
+
+	assign rfif.WEN   = mwb_plif.WEN_out; //mwb_plif.MemtoReg_out ? mwb_plif.WEN_out && dpif.dhit: mwb_plif.WEN_out;// && (dpif.ihit || dpif.dhit);
+
+	//assign rfif.wdat  = mwb_plif.MemtoReg_out ? mwb_plif.dmemload_out : mwb_plif.outport_out;
+	assign rfif.wsel  = mwb_plif.wsel_out;
+
+	//wdat
+	//LUI, MemtoReg, JAL MUX
+	always_comb begin
+		// rfif.wdat = {mwb_plif.immed, 16'h0000};
+		if (mwb_plif.LUI_out) begin
+			rfif.wdat = {mwb_plif.immed_out, 16'h0000};
+		end
+		else if (mwb_plif.MemtoReg_out) begin
+			rfif.wdat = mwb_plif.dmemload_out;
+		end
+		// else if (cuif.jal) begin
+		// 	rfif.wdat = PCplus4;
+		// end
+		else begin
+			rfif.wdat = mwb_plif.outport_out;
+		end
+	end
 
 	//
 	//IDEX Pipeline Register Assignments
 	//
 
 	// Control Signals
-	assign idex_plif.enable = 1;
-	assign idex_plif.flush  = 0;
+	assign idex_plif.enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;//1; // UPDATE FOR PC_CHG INSTR
+	assign idex_plif.flush  = 0; // UPDATE FOR PC_CHG INSTR
 
 	// Input Assignments
-	assign idex_plif.PCplus4_in  = ifid_plif.PCplus4_out;
+	// assign idex_plif.PCplus4_in  = ifid_plif.PCplus4_out;
 	assign idex_plif.rdat1_in    = rfif.rdat1;
 	assign idex_plif.rdat2_in    = rfif.rdat2;
+	assign idex_plif.halt_in     = cuif.halt;
+
 	// Execute Control Signals
 	assign idex_plif.immed_in    = cuif.immed;
 	assign idex_plif.extop_in    = cuif.extop;
@@ -116,44 +160,50 @@ module datapath (
 	assign idex_plif.jal_in      = cuif.jal;
 	assign idex_plif.LUI_in      = cuif.LUI;
 	assign idex_plif.pcsrc_in    = cuif.pcsrc;
-	assign idex_plif.halt_in     = dpif.halt;
 
 	// Output Assignments
+
+	//
+	// Execute: WSEL Block & ALU
+	//
+
+	//wsel MUX
+	regbits_t wsel_temp;
+	always_comb 
+	begin
+		casez(idex_plif.RegDest_out)
+			0: wsel_temp = idex_plif.rd_out; // if RD
+			1: wsel_temp = idex_plif.rt_out; // if RT
+			2:wsel_temp = 31;                // if REG31 
+		default: wsel_temp = idex_plif.rd_out;
+	endcase
+	end
+
+	// ALU
 	assign aluif.porta           = idex_plif.rdat1_out;
-	assign aluif.aluop           = idex_plif.ALUop_out;
 	assign aluif.rdat2           = idex_plif.rdat2_out;
+	assign aluif.aluop           = idex_plif.ALUop_out;
 	assign aluif.extop           = idex_plif.extop_out;
 	assign aluif.immed           = idex_plif.immed_out;
 	assign aluif.shamt           = idex_plif.shamt_out;
 	assign aluif.ALUsrc          = idex_plif.ALUsrc_out;
 
-	//ALU wsel MUX
-	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
-	regbits_t wsel_temp;
-	always_comb begin
-		wsel_temp = idex_plif.rd_out;
-		if (idex_plif.RegDest_out == 2'b00) begin
-			wsel_temp = idex_plif.rd_out;
-		end
-		else if (idex_plif.RegDest_out == 2'b01) begin
-			wsel_temp = idex_plif.rt_out;
-		end
-		else if (idex_plif.RegDest_out == 2'b10) begin
-			wsel_temp = 31;
-		end
-	end
-
-	//assign rfif.wsel = wsel_temp;
 	//
 	//EXM Pipeline Register Assignments
 	//
+	
 	// Control Signals
-	assign exm_plif.enable = 1;
-	assign exm_plif.flush  = 0;
+	assign exm_plif.enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;//1; // UPDATE FOR PC_CHG INSTR
+	assign exm_plif.flush  = 0; // UPDATE FOR PC_CHG INSTR
+
 	// Input Assignments
+	assign exm_plif.immed_in    = idex_plif.immed_out;
 	assign exm_plif.zero_f_in   = aluif.zero_f;
 	assign exm_plif.outport_in  = aluif.outport;
 	assign exm_plif.wsel_in     = wsel_temp;
+	assign exm_plif.rdat2_in    = idex_plif.rdat2_out;
+	assign exm_plif.halt_in     = idex_plif.halt_out;
+ 
 	// Memory Control Signals
 	assign exm_plif.dWEN_in     = idex_plif.dWEN_out;
 	assign exm_plif.dREN_in     = idex_plif.dREN_out;
@@ -165,7 +215,7 @@ module datapath (
 	assign exm_plif.jal_in      = idex_plif.jal_out;
 	assign exm_plif.LUI_in      = idex_plif.LUI_out;
 	assign exm_plif.pcsrc_in    = idex_plif.pcsrc_out;
-	assign exm_plif.halt_in     = idex_plif.halt_out;
+
 	// Outputs
 	assign ruif.dren            = exm_plif.dREN_out;
 	assign ruif.dwen            = exm_plif.dWEN_out;
@@ -173,62 +223,43 @@ module datapath (
 	assign pcif.branch          = exm_plif.branch_out;
 	assign pcif.zero_f          = exm_plif.zero_f_out; 
 
+	//
+	// Memory: Request Interactions
+	//
+
+	assign dpif.dmemstore = exm_plif.rdat2_out; 
+	assign dpif.dmemaddr = exm_plif.outport_out; 
+
 
 	//
 	//MWB Pipeline Register Assignments
 	//
 	// Control Signals
-	assign mwb_plif.enable = 1;
+	assign mwb_plif.enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;//1; // UPDATE FOR PC_CHG INSTR
 	assign mwb_plif.flush  = 0;
+	assign mwb_plif.immed_in    = exm_plif.immed_out;
 	// Input Assignments
 	assign mwb_plif.outport_in  = exm_plif.outport_out;
 	assign mwb_plif.wsel_in     = exm_plif.wsel_out;
 	assign mwb_plif.dmemload_in = dpif.dmemload; 
+	assign mwb_plif.halt_in     = exm_plif.halt_out;
 	// Write Back Control Signals
 	assign mwb_plif.WEN_in      = exm_plif.WEN_out;
 	assign mwb_plif.MemtoReg_in = exm_plif.MemtoReg_out;
 	assign mwb_plif.jal_in      = exm_plif.jal_out;
 	assign mwb_plif.LUI_in      = exm_plif.LUI_out;
 	assign mwb_plif.pcsrc_in    = exm_plif.pcsrc_out;
-	assign mwb_plif.halt_in     = exm_plif.halt_out;
-	// Outputs
-	assign rfif.wsel           = mwb_plif.wsel_out;
-	assign pcif.pcsrc          = mwb_plif.pcsrc_out; 
 
-	//wdat
-	//LUI, MemtoReg, JAL MUX
-	// always_comb begin
-	// 	rfif.wdat = {cuif.immed, 16'h0000};
-	// 	if (cuif.LUI) begin
-	// 		rfif.wdat = {cuif.immed, 16'h0000};
-	// 	end
-	// 	else if (cuif.MemtoReg) begin
-	// 		rfif.wdat = dpif.dmemload;
-	// 	end
-	// 	else if (cuif.jal) begin
-	// 		rfif.wdat = PCplus4;
-	// 	end
-	// 	else begin
-	// 		rfif.wdat = aluif.outport;
-	// 	end
-	// end
-	always_comb 
-	begin
-		rfif.wdat = cuif.MemtoReg ? mwb_plif.dmemload_out : mwb_plif.outport_out;
-	end
+
 
 	//
-	//DATAPATH 
+	// Request Unit
 	//
-	//input   ihit, imemload, dhit, dmemload,
-    //output  halt, imemREN, imemaddr, dmemREN, dmemWEN, datomic, dmemstore, dmemaddr
-
-	assign dpif.imemREN = cuif.imemREN;
-	assign dpif.dmemREN = ruif.dmemren;
-	assign dpif.imemaddr = pcif.pcout; 
+	assign dpif.dmemREN = ruif.dmemren; 
 	assign dpif.dmemWEN = ruif.dmemwen;
-	assign dpif.dmemstore = rfif.rdat2; 
-	assign dpif.dmemaddr = aluif.outport; 
+	assign ruif.ihit = dpif.ihit;
+	assign ruif.dhit = dpif.dhit;
+
 
 	//HALT latch
 	always_ff @(posedge CLK, negedge nRST) begin
@@ -236,94 +267,27 @@ module datapath (
 			temphalt = 0;
 		end
 		else begin
-			temphalt = cuif.halt;
-
+			temphalt = mwb_plif.halt_out;
 		end
 	end
 	assign dpif.halt = temphalt;
 
-
-	//
-	//PC BLOCK
-	//
-	//inputs pcenable, pcnext,
-	//output pcout
-
-	//assign pcif.branch = cuif.branch;
-	//assign pcif.BEQ = cuif.BEQ;
-	//assign pcif.zero_f = aluif.zero_f;
-	//assign pcif.pcsrc = cuif.pcsrc;
-	assign pcif.immedEXT = immedEXT;
-	assign pcif.pcenable = dpif.ihit;
-	assign pcif.rdat1 = rfif.rdat1;
-	assign pcif.immed = cuif.immed;
-
-
-	//
-	//REQUEST UNIT BLOCK
-	//
-	//inputs ihit, dhit, dwen, dren
-	//outputs dmemren, dmemwen
-	assign ruif.ihit = dpif.ihit;
-	assign ruif.dhit = dpif.dhit;
-	//assign ruif.dwen = cuif.dWEN;
-	//assign ruif.dren = cuif.dREN;
-
-
-		
-	//
-	//CONTROL UNIT BLOCK
-	//
-	//inputs instruction
-	//outputs
-	//assign cuif.instruction = dpif.imemload;
-
-
-	//
-	//REGISTER FILE BLOCK
-	//
-
-	//inputs: WEN, wsel, rsel1, rsel2, wdat
-	//output  rdat1, rdat2
-
-	assign rfif.WEN = 1; //cuif.WEN && (dpif.ihit || dpif.dhit);
-	assign rfif.rsel1 = cuif.rs;
-	assign rfif.rsel2 = cuif.rt;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 endmodule
 
 
+
+
+		// always_comb begin
+	// 	wsel_temp = idex_plif.rd_out;
+	// 	if (idex_plif.RegDest_out == 2'b00) begin
+	// 		wsel_temp = idex_plif.rd_out;
+	// 	end
+	// 	else if (idex_plif.RegDest_out == 2'b01) begin
+	// 		wsel_temp = idex_plif.rt_out;
+	// 	end
+	// 	else if (idex_plif.RegDest_out == 2'b10) begin
+	// 		wsel_temp = 31;
+	// 	end
+	// end
+
+	//assign rfif.wsel = wsel_temp;
