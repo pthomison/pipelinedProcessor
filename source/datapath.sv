@@ -20,7 +20,7 @@ datapath for pipeline
 `include "request_unit_if.vh"
 `include "alu_file_if.vh"
 `include "pipeline_register_if.vh"
-
+`include "hazard_unit_if.vh"
 
 module datapath (
   input logic CLK, nRST,
@@ -44,6 +44,8 @@ module datapath (
   	control_unit_if cuif();
   	register_file_if rfif();
   	alu_file_if aluif();
+  	hazard_unit_if huif();
+  	forward_unit_if fuif();
 
 	//Function Blocks
   	pc PC(CLK, nRST, pcif.pc);
@@ -58,10 +60,14 @@ module datapath (
 	pipeline_register_if exm_plif ();
 	pipeline_register_if mwb_plif ();
 
-	pipeline_register IFID(CLK, nRST, ifid_plif);
-	pipeline_register IDEX(CLK, nRST, idex_plif);
-	pipeline_register EXM(CLK, nRST, exm_plif);
-	pipeline_register MWB(CLK, nRST, mwb_plif);
+	pipeline_register IFID(CLK, nRST, ifid_plif.pr);
+	pipeline_register IDEX(CLK, nRST, idex_plif.pr);
+	pipeline_register EXM(CLK, nRST, exm_plif.pr);
+	pipeline_register MWB(CLK, nRST, mwb_plif.pr);
+
+	//Hazard and Forwarding Unit
+	hazard_unit HU(huif.hu);
+	forward_unit FU(fuif.fu);
 
 	//
 	// Instruction Fetch: PC Block
@@ -108,23 +114,26 @@ module datapath (
 	//assign rfif.wdat  = mwb_plif.MemtoReg_out ? mwb_plif.dmemload_out : mwb_plif.outport_out;
 	assign rfif.wsel  = mwb_plif.wsel_out;
 
-	//wdat
+	//WDAT MUX
 	//LUI, MemtoReg, JAL MUX
+	word_t wdat_temp;
+
 	always_comb begin
 		// rfif.wdat = {mwb_plif.immed, 16'h0000};
 		if (mwb_plif.LUI_out) begin
-			rfif.wdat = {mwb_plif.immed_out, 16'h0000};
+			wdat_temp = {mwb_plif.immed_out, 16'h0000};
 		end
 		else if (mwb_plif.MemtoReg_out) begin
-			rfif.wdat = mwb_plif.dmemload_out;
+			wdat_temp = mwb_plif.dmemload_out;
 		end
 		// else if (cuif.jal) begin
 		// 	rfif.wdat = PCplus4;
 		// end
 		else begin
-			rfif.wdat = mwb_plif.outport_out;
+			wdat_temp = mwb_plif.outport_out;
 		end
 	end
+	assign rfif.wdat = wdat_temp;
 
 	//
 	//IDEX Pipeline Register Assignments
@@ -136,6 +145,7 @@ module datapath (
 
 	// Input Assignments
 	// assign idex_plif.PCplus4_in  = ifid_plif.PCplus4_out;
+	assign idex_plif.instruction_in = ifid_plif.instruction_out;
 	assign idex_plif.rdat1_in    = rfif.rdat1;
 	assign idex_plif.rdat2_in    = rfif.rdat2;
 	assign idex_plif.halt_in     = cuif.halt;
@@ -175,18 +185,37 @@ module datapath (
 			0: wsel_temp = idex_plif.rd_out; // if RD
 			1: wsel_temp = idex_plif.rt_out; // if RT
 			2:wsel_temp = 31;                // if REG31 
-		default: wsel_temp = idex_plif.rd_out;
+			default: wsel_temp = idex_plif.rd_out;
 	endcase
 	end
 
 	// ALU
-	assign aluif.porta           = idex_plif.rdat1_out;
-	assign aluif.rdat2           = idex_plif.rdat2_out;
+	//assign aluif.porta           = idex_plif.rdat1_out;
+	//assign aluif.rdat2           = idex_plif.rdat2_out;
 	assign aluif.aluop           = idex_plif.ALUop_out;
 	assign aluif.extop           = idex_plif.extop_out;
 	assign aluif.immed           = idex_plif.immed_out;
 	assign aluif.shamt           = idex_plif.shamt_out;
 	assign aluif.ALUsrc          = idex_plif.ALUsrc_out;
+
+	always_comb begin
+		casez(fuif.ForwardA)
+			0: aluif.porta = idex_plif.rdat1_out;
+			1: aluif.porta = wdat_temp;
+			2: aluif.porta = exm_plif.outport_out;
+			default: aluif.porta = idex_plif.rdat1_out;
+		endcase
+
+		casez(fuif.ForwardB)
+			0: aluif.rdat2 = idex_plif.rdat2_out;
+			1: aluif.rdat2 = wdat_temp;
+			2: aluif.rdat2 = exm_plif.outport_out;
+			default: aluif.rdat2 = idex_plif.rdat2_out;
+		endcase
+
+	end
+
+
 
 	//
 	//EXM Pipeline Register Assignments
@@ -197,6 +226,7 @@ module datapath (
 	assign exm_plif.flush  = 0; // UPDATE FOR PC_CHG INSTR
 
 	// Input Assignments
+	assign exm_plif.instruction_in = idex_plif.instruction_out;
 	assign exm_plif.immed_in    = idex_plif.immed_out;
 	assign exm_plif.zero_f_in   = aluif.zero_f;
 	assign exm_plif.outport_in  = aluif.outport;
@@ -239,6 +269,7 @@ module datapath (
 	assign mwb_plif.flush  = 0;
 	assign mwb_plif.immed_in    = exm_plif.immed_out;
 	// Input Assignments
+	assign mwb_plif.instruction_in = exm_plif.instruction_out;
 	assign mwb_plif.outport_in  = exm_plif.outport_out;
 	assign mwb_plif.wsel_in     = exm_plif.wsel_out;
 	assign mwb_plif.dmemload_in = dpif.dmemload; 
