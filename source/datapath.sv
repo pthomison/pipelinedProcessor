@@ -74,11 +74,19 @@ module datapath (
 	//
 
 	assign fuif.exm_WEN     = exm_plif.WEN_out;
-	assign fuif.exm_rd_out  = exm_plif.rd_out;
+	//assign fuif.exm_rd_out  = exm_plif.rd_out;
 	assign fuif.idex_rt_out = idex_plif.rt_out;
 	assign fuif.idex_rs_out = idex_plif.rs_out;
 	assign fuif.mwb_WEN     = mwb_plif.WEN_out;
-	assign fuif.mwb_rd_out  = mwb_plif.rd_out;
+	//assign fuif.mwb_rd_out  = mwb_plif.rd_out;
+	//assign fuif.mwb_rt_out  = mwb_plif.rt_out;
+	//assign fuif.exm_rt_out  = exm_plif.rt_out;
+	assign fuif.exm_itype_out = exm_plif.itype_out;
+	assign fuif.mwb_itype_out = mwb_plif.itype_out;
+
+	assign fuif.mwb_wsel_out = mwb_plif.wsel_out;
+	assign fuif.exm_wsel_out = exm_plif.wsel_out;
+
 
 	//
 	// Instruction Fetch: PC Block
@@ -160,6 +168,7 @@ module datapath (
 	assign idex_plif.rdat1_in    = rfif.rdat1;
 	assign idex_plif.rdat2_in    = rfif.rdat2;
 	assign idex_plif.halt_in     = cuif.halt;
+	assign idex_plif.itype_in     = cuif.itype;
 
 	// Execute Control Signals
 	assign idex_plif.immed_in    = cuif.immed;
@@ -252,6 +261,8 @@ module datapath (
 	assign exm_plif.rdat2_in    = temp_rdat2; //idex_plif.rdat2_out;
 	assign exm_plif.halt_in     = idex_plif.halt_out;
 	assign exm_plif.rd_in       = idex_plif.rd_out;
+	assign exm_plif.rt_in       = idex_plif.rt_out;
+	assign exm_plif.itype_in    = idex_plif.itype_out;
  
 	// Memory Control Signals
 	assign exm_plif.dWEN_in     = idex_plif.dWEN_out;
@@ -294,6 +305,8 @@ module datapath (
 	assign mwb_plif.wsel_in     = exm_plif.wsel_out;
 	assign mwb_plif.dmemload_in = dpif.dmemload; 
 	assign mwb_plif.halt_in     = exm_plif.halt_out;
+	assign mwb_plif.itype_in    = exm_plif.itype_out;
+	assign mwb_plif.rt_in      = exm_plif.rt_out;
 	// Write Back Control Signals
 	assign mwb_plif.WEN_in      = exm_plif.WEN_out;
 	assign mwb_plif.MemtoReg_in = exm_plif.MemtoReg_out;

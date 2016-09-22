@@ -4,6 +4,18 @@
 		"selected_items":
 		[
 			[
+				"ifl",
+				"iflag_out	Field"
+			],
+			[
+				"exm",
+				"exm_plif"
+			],
+			[
+				"exm_",
+				"exm_iflag_out"
+			],
+			[
 				"ex",
 				"exm_plif"
 			],
@@ -24,34 +36,10 @@
 	"buffers":
 	[
 		{
-			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/hazard_unit.sv",
+			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/datapath.sv",
 			"settings":
 			{
-				"buffer_size": 199,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/forward_unit_if.vh",
-			"settings":
-			{
-				"buffer_size": 648,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/forward_unit.sv",
-			"settings":
-			{
-				"buffer_size": 1265,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/pipeline_register_tb.sv",
-			"settings":
-			{
-				"buffer_size": 2754,
+				"buffer_size": 9676,
 				"line_ending": "Unix"
 			}
 		},
@@ -59,15 +47,23 @@
 			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/pipeline_register_if.vh",
 			"settings":
 			{
-				"buffer_size": 2276,
+				"buffer_size": 2338,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/datapath.sv",
+			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/forward_unit.sv",
 			"settings":
 			{
-				"buffer_size": 8947,
+				"buffer_size": 1659,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/pipeline_register.sv",
+			"settings":
+			{
+				"buffer_size": 2036,
 				"line_ending": "Unix"
 			}
 		},
@@ -75,7 +71,15 @@
 			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/test.rtype.asm",
 			"settings":
 			{
-				"buffer_size": 812,
+				"buffer_size": 794,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/forward_unit_if.vh",
+			"settings":
+			{
+				"buffer_size": 803,
 				"line_ending": "Unix"
 			}
 		},
@@ -127,17 +131,22 @@
 	[
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench"
 	],
 	"file_history":
 	[
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/hazard_unit.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/control_unit_if.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/control_unit.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/pipeline_register_tb.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/pipeline_register_if.vh",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/pipeline_register.sv",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/hazard_unit_tb.sv",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/ram.sv",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/register_file.sv",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/pipeline.sv",
-		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/control_unit.sv",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/request_unit.sv",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/pc.sv",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/test.ldst1.asm",
@@ -147,13 +156,11 @@
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/alu_file_tb.sv",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/pc_if.vh",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/request_unit_if.vh",
-		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/pipeline_register_tb.sv",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/alu_file.sv",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/slt_test.asm",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/register_file_if.vh",
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/alu_file_if.vh",
-		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/cache_control_if.vh",
-		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/control_unit_if.vh"
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/cache_control_if.vh"
 	],
 	"find":
 	{
@@ -171,6 +178,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"iflag",
 			"fuif",
 			"HAZARD",
 			"huif",
@@ -195,6 +203,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"itype",
 			"FORWARD",
 			"fuif",
 			"forward",
@@ -220,19 +229,77 @@
 			[
 				{
 					"buffer": 0,
-					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/hazard_unit.sv",
+					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/datapath.sv",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 199,
+						"buffer_size": 9676,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								174,
-								174
+								1986,
+								1986
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 988.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/pipeline_register_if.vh",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2338,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								653,
+								653
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 61.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/forward_unit.sv",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1659,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								884,
+								884
 							]
 						],
 						"settings":
@@ -242,27 +309,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 108.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/forward_unit_if.vh",
+					"buffer": 3,
+					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/pipeline_register.sv",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 648,
+						"buffer_size": 2036,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								372,
-								372
+								953,
+								953
 							]
 						],
 						"settings":
@@ -274,46 +341,22 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 4,
 					"type": "text"
-				},
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
 				{
-					"buffer": 2,
-					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/forward_unit.sv",
+					"buffer": 4,
+					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/test.rtype.asm",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1265,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1024,
-								1024
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 35.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/pipeline_register_tb.sv",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2754,
+						"buffer_size": 794,
 						"regions":
 						{
 						},
@@ -326,100 +369,6 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 6,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/pipeline_register_if.vh",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2276,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								303,
-								303
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 7,
-					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 1,
-			"sheets":
-			[
-				{
-					"buffer": 5,
-					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/datapath.sv",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 8947,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								7295,
-								7295
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 4015.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/test.rtype.asm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 812,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								546,
-								546
-							]
-						],
-						"settings":
-						{
 							"syntax": "Packages/Text/Plain text.tmLanguage",
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
@@ -428,11 +377,40 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 5,
+					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/forward_unit_if.vh",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 803,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								725,
+								725
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 17.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
 					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/hazard_unit_if.vh",
 					"semi_transient": false,
 					"settings":
@@ -457,7 +435,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 6,
 					"type": "text"
 				}
 			]
@@ -491,7 +469,7 @@
 		"cols":
 		[
 			0.0,
-			0.423832923833,
+			0.842751842752,
 			1.0
 		],
 		"rows":
@@ -539,7 +517,7 @@
 		],
 		"width": 0.0
 	},
-	"selected_group": 1,
+	"selected_group": 0,
 	"settings":
 	{
 	},

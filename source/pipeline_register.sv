@@ -43,6 +43,7 @@ begin
 		prif.BEQ_out <= 0;
 		prif.halt_out <= 0;
 		prif.zero_f_out <= 0;
+		prif.itype_out <= 0;
 
 	end else begin
 		if (prif.enable) begin
@@ -73,6 +74,7 @@ begin
 			prif.BEQ_out <= prif.BEQ_in;
 			prif.halt_out <= prif.halt_in;
 			prif.zero_f_out <= prif.zero_f_in;
+			prif.itype_out <= prif.itype_in;
 		end
 	end 
 end

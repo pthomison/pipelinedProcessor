@@ -67,6 +67,7 @@ always_comb begin
 	cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 	cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 	cuif.halt = 0;
+	cuif.itype = 0;		//1 if I Type
 
 casez (opcode) 
 
@@ -89,6 +90,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 			
 			SRL: begin
@@ -107,6 +109,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			JR: begin
@@ -125,6 +128,7 @@ casez (opcode)
 				cuif.pcsrc = 01;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			ADD: begin
@@ -143,6 +147,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			ADDU: begin
@@ -161,6 +166,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			SUB: begin
@@ -179,6 +185,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			SUBU: begin
@@ -197,6 +204,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			AND: begin
@@ -215,6 +223,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			OR: begin
@@ -233,6 +242,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			XOR: begin
@@ -251,6 +261,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			NOR: begin
@@ -269,6 +280,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			SLT: begin
@@ -287,6 +299,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 			
 			SLTU: begin
@@ -305,6 +318,7 @@ casez (opcode)
 				cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 				cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 				cuif.halt = 0;
+				cuif.itype = 0;
 			end
 
 			default: begin
@@ -332,6 +346,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 1;
 
 	end
 
@@ -351,6 +366,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 1;
 
 	end
 
@@ -370,6 +386,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 1;
 
 	end
 
@@ -389,6 +406,7 @@ casez (opcode)
 		cuif.pcsrc = 10;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 0;
 	end
 
 	BNE: begin
@@ -407,6 +425,7 @@ casez (opcode)
 		cuif.pcsrc = 10;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 0;
 	end
 
 	LUI: begin
@@ -425,6 +444,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 1;
 	end
 
 	LW: begin
@@ -443,6 +463,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 0;
 	end
 
 	ORI: begin
@@ -461,6 +482,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 1;
 
 	end
 
@@ -480,6 +502,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 1;
 	end
 
 	SLTIU: begin
@@ -498,6 +521,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 1;
 	end
 
 	SW: begin
@@ -516,6 +540,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 0;
 
 	end
 
@@ -553,6 +578,7 @@ casez (opcode)
 		cuif.pcsrc = 11;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 10;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 0;
 	end
 
 	XORI: begin
@@ -571,6 +597,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 01;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 0;
+		cuif.itype = 1;
 	end
 
 	HALT: begin
@@ -589,6 +616,7 @@ casez (opcode)
 		cuif.pcsrc = 00;		//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
 		cuif.RegDest = 00;	//00 if RD - 01 if RT - 10 if REG#31 - IF RTYPE then 00
 		cuif.halt = 1;
+		cuif.itype = 0;
 	end
 
 	default: begin

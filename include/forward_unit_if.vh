@@ -18,22 +18,27 @@ interface  forward_unit_if;
 	// import types
 	import cpu_types_pkg::*;
 
-	regbits_t exm_WEN, exm_rd_out, idex_rt_out, idex_rs_out;
-	regbits_t mwb_WEN, mwb_rd_out;
-
+	regbits_t idex_rt_out, idex_rs_out, exm_wsel_out, mwb_wsel_out;
+	logic mwb_WEN, exm_WEN;
+	logic exm_itype_out, mwb_itype_out;
 	logic[1:0] ForwardB, ForwardA;
 
 
 	modport fu (
-		input exm_WEN, exm_rd_out, idex_rt_out, idex_rs_out, mwb_WEN, mwb_rd_out,
+		input exm_WEN, idex_rt_out, idex_rs_out, mwb_WEN, exm_itype_out, mwb_itype_out, exm_wsel_out, mwb_wsel_out,
 		output ForwardB, ForwardA
 	);
 
 	modport tb (
 		output ForwardB, ForwardA,
-		input exm_WEN, exm_rd_out, idex_rt_out, idex_rs_out, mwb_WEN, mwb_rd_out
+		input exm_WEN, idex_rt_out, idex_rs_out, mwb_WEN, exm_itype_out, mwb_itype_out, exm_wsel_out, mwb_wsel_out
 	);
 
 endinterface
 
 `endif 
+
+
+  //exm_rt_out
+  //exm_itype_out
+  //mwb_rt_out
