@@ -2,6 +2,9 @@ org   0x0000
 ori   $1, $zero, 0x0001
 ori   $2, $zero, 0x0002
 
+nop
+nop
+
 ADD $3, $1, $2
 SUB $4, $2, $1
 ADDI $5, $1, 0x0005

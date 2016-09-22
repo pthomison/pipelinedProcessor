@@ -70,6 +70,17 @@ module datapath (
 	forward_unit FU(fuif.fu);
 
 	//
+	// Forwarding Unit
+	//
+
+	assign fuif.exm_WEN     = exm_plif.WEN_out;
+	assign fuif.exm_rd_out  = exm_plif.rd_out;
+	assign fuif.idex_rt_out = idex_plif.rt_out;
+	assign fuif.idex_rs_out = idex_plif.rs_out;
+	assign fuif.mwb_WEN     = mwb_plif.WEN_out;
+	assign fuif.mwb_rd_out  = mwb_plif.rd_out;
+
+	//
 	// Instruction Fetch: PC Block
 	//
 	// inputs
@@ -159,6 +170,8 @@ module datapath (
 	assign idex_plif.ALUop_in    = cuif.ALUop;
 	assign idex_plif.rd_in       = cuif.rd;
 	assign idex_plif.rt_in       = cuif.rt;
+	assign idex_plif.rs_in       = cuif.rs;
+
 	// Memory Control Signals
 	assign idex_plif.dWEN_in     = cuif.dWEN;
 	assign idex_plif.dREN_in     = cuif.dREN;
@@ -198,6 +211,8 @@ module datapath (
 	assign aluif.shamt           = idex_plif.shamt_out;
 	assign aluif.ALUsrc          = idex_plif.ALUsrc_out;
 
+	word_t temp_rdat2;
+
 	always_comb begin
 		casez(fuif.ForwardA)
 			0: aluif.porta = idex_plif.rdat1_out;
@@ -206,14 +221,17 @@ module datapath (
 			default: aluif.porta = idex_plif.rdat1_out;
 		endcase
 
+		// Changed from piping into ALU directly so SW can use the forward
 		casez(fuif.ForwardB)
-			0: aluif.rdat2 = idex_plif.rdat2_out;
-			1: aluif.rdat2 = wdat_temp;
-			2: aluif.rdat2 = exm_plif.outport_out;
-			default: aluif.rdat2 = idex_plif.rdat2_out;
+			0: temp_rdat2 = idex_plif.rdat2_out;
+			1: temp_rdat2 = wdat_temp;
+			2: temp_rdat2 = exm_plif.outport_out;
+			default: temp_rdat2 = idex_plif.rdat2_out;
 		endcase
 
 	end
+
+	assign aluif.rdat2 = temp_rdat2;
 
 
 
@@ -231,8 +249,9 @@ module datapath (
 	assign exm_plif.zero_f_in   = aluif.zero_f;
 	assign exm_plif.outport_in  = aluif.outport;
 	assign exm_plif.wsel_in     = wsel_temp;
-	assign exm_plif.rdat2_in    = idex_plif.rdat2_out;
+	assign exm_plif.rdat2_in    = temp_rdat2; //idex_plif.rdat2_out;
 	assign exm_plif.halt_in     = idex_plif.halt_out;
+	assign exm_plif.rd_in       = idex_plif.rd_out;
  
 	// Memory Control Signals
 	assign exm_plif.dWEN_in     = idex_plif.dWEN_out;
@@ -268,6 +287,7 @@ module datapath (
 	assign mwb_plif.enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;//1; // UPDATE FOR PC_CHG INSTR
 	assign mwb_plif.flush  = 0;
 	assign mwb_plif.immed_in    = exm_plif.immed_out;
+	assign mwb_plif.rd_in      = exm_plif.rd_out;
 	// Input Assignments
 	assign mwb_plif.instruction_in = exm_plif.instruction_out;
 	assign mwb_plif.outport_in  = exm_plif.outport_out;
@@ -304,21 +324,3 @@ module datapath (
 	assign dpif.halt = temphalt;
 
 endmodule
-
-
-
-
-		// always_comb begin
-	// 	wsel_temp = idex_plif.rd_out;
-	// 	if (idex_plif.RegDest_out == 2'b00) begin
-	// 		wsel_temp = idex_plif.rd_out;
-	// 	end
-	// 	else if (idex_plif.RegDest_out == 2'b01) begin
-	// 		wsel_temp = idex_plif.rt_out;
-	// 	end
-	// 	else if (idex_plif.RegDest_out == 2'b10) begin
-	// 		wsel_temp = 31;
-	// 	end
-	// end
-
-	//assign rfif.wsel = wsel_temp;

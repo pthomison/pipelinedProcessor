@@ -22,9 +22,6 @@
   sll   $11,$1,4
   srl   $12,$1,5
   nor   $13,$1,$2
-  nop
-  nop
-  nop
 # Store them to verify the results
   sw    $13,0($22)
   sw    $3,0($21)

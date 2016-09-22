@@ -260,6 +260,14 @@ add wave -noupdate -group ALU /system_tb/DUT/CPU/DP/ALU/aluif/porta
 add wave -noupdate -group ALU /system_tb/DUT/CPU/DP/ALU/aluif/portb
 add wave -noupdate -group ALU /system_tb/DUT/CPU/DP/ALU/aluif/outport
 add wave -noupdate -group ALU /system_tb/DUT/CPU/DP/ALU/aluif/aluop
+add wave -noupdate -expand -group FU /system_tb/DUT/CPU/DP/fuif/exm_WEN
+add wave -noupdate -expand -group FU /system_tb/DUT/CPU/DP/fuif/exm_rd_out
+add wave -noupdate -expand -group FU /system_tb/DUT/CPU/DP/fuif/idex_rt_out
+add wave -noupdate -expand -group FU /system_tb/DUT/CPU/DP/fuif/idex_rs_out
+add wave -noupdate -expand -group FU /system_tb/DUT/CPU/DP/fuif/mwb_WEN
+add wave -noupdate -expand -group FU /system_tb/DUT/CPU/DP/fuif/mwb_rd_out
+add wave -noupdate -expand -group FU /system_tb/DUT/CPU/DP/fuif/ForwardB
+add wave -noupdate -expand -group FU /system_tb/DUT/CPU/DP/fuif/ForwardA
 add wave -noupdate /system_tb/DUT/CPU/DP/aluif/rdat2
 add wave -noupdate /system_tb/DUT/CPU/DP/aluif/aluop
 add wave -noupdate /system_tb/DUT/CPU/DP/aluif/immed
@@ -330,7 +338,7 @@ add wave -noupdate -group RU /system_tb/DUT/CPU/DP/RU/ruif/dmemren
 add wave -noupdate -group RU /system_tb/DUT/CPU/DP/RU/ruif/dmemwen
 add wave -noupdate -expand /system_tb/DUT/CPU/DP/RF/register
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {90647 ps} 0}
+WaveRestoreCursors {{Cursor 1} {142486 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -346,4 +354,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {762259 ps}
+WaveRestoreZoom {0 ps} {1050 ns}
