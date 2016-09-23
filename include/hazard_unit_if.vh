@@ -18,20 +18,20 @@ interface  hazard_unit_if;
 	// import types
 	import cpu_types_pkg::*;
 
-	regbits_t exm_WEN, exm_rd_out, idex_rt_out, idex_rs_out;
-	regbits_t mwb_WEN, mwb_rd_out;
+	regbits_t idex_rt_out, ifid_rs_out, idif_rt_out;
+	logic idex_dren_out, lw_nop, jmp_flush, brch_flush;
 
-	logic[1:0] ForwardB, ForwardA;
+	logic[1:0] idex_pcsrc_out;
 
 
 	modport hu (
-		input exm_WEN, exm_rd_out, idex_rt_out, idex_rs_out, mwb_WEN, mwb_rd_out,
-		output ForwardB, ForwardA
+		input idex_rt_out, ifid_rs_out, idif_rt_out, idex_dren_out, idex_pcsrc_out, 
+		output lw_nop, jmp_flush, brch_flush
 	);
 
 	modport tb (
-		output ForwardB, ForwardA,
-		input exm_WEN, exm_rd_out, idex_rt_out, idex_rs_out, mwb_WEN, mwb_rd_out
+		input lw_nop, jmp_flush, brch_flush,
+		output idex_rt_out, ifid_rs_out, idif_rt_out, idex_dren_out, idex_pcsrc_out
 	);
 
 endinterface

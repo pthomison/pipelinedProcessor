@@ -1,20 +1,34 @@
 org   0x0000
-ori   $1, $zero, 0x0001
-ori   $2, $zero, 0x0002
-ori   $30, $zero, 0x0800
+ori   $1, $zero, 0x00F0
+ori   $2, $zero, 0x0080
 
-ADD $3, $1, $2
-ADD $4, $3, $2
-ADD $5, $1, $4
-ADD $6, $5, $4
-ADD $7, $6, $6
+add $8, $2, $1
+add $8, $2, $1
+add $8, $2, $1
+add $8, $2, $1
+add $8, $2, $1
 
-SW $7, 0($30)
 
-ADD $8, $7, $4
-ADD $9, $1, $8
+jal   jumpLabel
+add $8, $2, $1
+add $8, $2, $1
+add $8, $2, $1
+add $8, $2, $1
+add $8, $2, $1
+add $8, $2, $1
+SW $4, 16($1)
+
+halt
+
+jumpLabel:
+sub $8, $1, $2
+lw $3, 0($1)
+add $4, $2, $3
+jr $ra
+
 
 halt
 
 org   0x00F0
 cfw   0x7337
+
