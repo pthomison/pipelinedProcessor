@@ -1,6 +1,8 @@
 org   0x0000
 ori   $1, $zero, 0x00F0
-ori   $2, $zero, 0x0080
+ori   $2, $zero, 0x00F0
+ori   $3, $zero, 0x0080
+ori   $4, $zero, 0x0080
 
 add $8, $2, $1
 add $8, $2, $1
@@ -9,7 +11,9 @@ add $8, $2, $1
 add $8, $2, $1
 
 
-jal   jumpLabel
+beq $1, $2, jumpLabel
+
+
 add $8, $2, $1
 add $8, $2, $1
 add $8, $2, $1
@@ -21,11 +25,10 @@ SW $4, 16($1)
 halt
 
 jumpLabel:
-sub $8, $1, $2
-lw $3, 0($1)
-add $4, $2, $3
-jr $ra
 
+SW $4, 16($1)
+
+bne $1, $2, jumpLabel
 
 halt
 

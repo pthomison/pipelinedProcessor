@@ -7,6 +7,7 @@ hazard unit
 
 
 module hazard_unit (
+  input CLK, 
   hazard_unit_if huif
 );
 
@@ -23,15 +24,18 @@ always_comb begin
 end
 
 //00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
-always_comb 
+always_ff @ (posedge CLK)
 begin
-	huif.jmp_flush = 0;
-	huif.brch_flush = 0;
 
-	if (huif.idex_pcsrc_out == 3) begin
-		huif.jmp_flush = 1;
+
+	if (huif.idex_pcsrc_out == 3 || huif.idex_pcsrc_out == 1 ) begin
+		huif.jmp_flush <= 1;
 	end else if (huif.idex_pcsrc_out == 2) begin
-		huif.brch_flush = 1;
+		huif.brch_flush <= 1;
+	end
+	else begin
+		huif.jmp_flush <= 0;
+		huif.brch_flush <= 0;
 	end
 end
 

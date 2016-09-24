@@ -16,21 +16,23 @@ module alu_file(
 import cpu_types_pkg::*;
 //aluop_t aluopcodes;
 
+word_t portb_temp;
+
 always_comb begin
 //aluif.over_f = 0;
 
-		aluif.portb = aluif.rdat2;
+		portb_temp = aluif.rdat2;
 		if (aluif.ALUsrc == 00) begin
-			aluif.portb = aluif.rdat2;
+			portb_temp = aluif.rdat2;
 		end
 		else if (aluif.ALUsrc == 01) begin
 			case (aluif.extop) 
-				0: aluif.portb = {16'h0000, aluif.immed};
-				1: aluif.portb = $signed(aluif.immed);
+				0: portb_temp = {16'h0000, aluif.immed};
+				1: portb_temp = $signed(aluif.immed);
 			endcase
 		end
 		else begin
-			aluif.portb = {16'h0000, aluif.shamt};
+			portb_temp = {16'h0000, aluif.shamt};
 		end
 
 
@@ -42,7 +44,7 @@ casez(aluif.aluop)
 		aluif.zero_f = 0;
 		aluif.over_f = 0;
 		aluif.neg_f = 0;
-		aluif.outport = aluif.porta << aluif.portb;
+		aluif.outport = aluif.porta << portb_temp;
 
 		if (aluif.outport == 32'b0) 
 			aluif.zero_f = 1;
@@ -58,7 +60,7 @@ casez(aluif.aluop)
 		aluif.over_f = 0;
 		aluif.neg_f = 0;
 
-		aluif.outport = aluif.porta >> aluif.portb;
+		aluif.outport = aluif.porta >> portb_temp;
 
 		if (aluif.outport == 32'b0) 
 			aluif.zero_f = 1;
@@ -72,14 +74,14 @@ casez(aluif.aluop)
 		aluif.over_f = 0;
 		aluif.neg_f = 0;
 
-		aluif.outport = $signed(aluif.porta) + $signed(aluif.portb);
+		aluif.outport = $signed(aluif.porta) + $signed(portb_temp);
 
-		if ( aluif.porta[31] == 1 && aluif.portb[31] == 1 ) begin
+		if ( aluif.porta[31] == 1 && portb_temp[31] == 1 ) begin
 			if ( aluif.outport[31] == 0) 
 				aluif.over_f = 1;
 		end
 
-		if ( aluif.porta[31] == 0 && aluif.portb[31] == 0 ) begin
+		if ( aluif.porta[31] == 0 && portb_temp[31] == 0 ) begin
 			if (aluif.outport[31] == 1)
 				aluif.over_f = 1;
 		end
@@ -99,12 +101,12 @@ casez(aluif.aluop)
 		aluif.over_f = 0;
 		aluif.neg_f = 0;
 
-		aluif.outport = $signed(aluif.porta) - $signed(aluif.portb);
+		aluif.outport = $signed(aluif.porta) - $signed(portb_temp);
 
-		if ( ( aluif.porta[31] == 1 && aluif.portb[31] == 0 ) && aluif.outport[31] == 0)
+		if ( ( aluif.porta[31] == 1 && portb_temp[31] == 0 ) && aluif.outport[31] == 0)
 			aluif.over_f = 1;
 
-		if ( aluif.porta[31] == 0 && aluif.portb[31] == 1 )begin
+		if ( aluif.porta[31] == 0 && portb_temp[31] == 1 )begin
 			if (aluif.outport[31] == 1) 
 				aluif.over_f = 1;
 		end
@@ -118,7 +120,7 @@ casez(aluif.aluop)
 	end
 
 	ALU_AND : begin
-		aluif.outport = aluif.porta & aluif.portb;
+		aluif.outport = aluif.porta & portb_temp;
 
 		aluif.zero_f = 0;
 		aluif.over_f = 0;
@@ -130,7 +132,7 @@ casez(aluif.aluop)
 			aluif.neg_f = 1;
 	end
 	ALU_OR	: begin
-		aluif.outport = aluif.porta | aluif.portb;
+		aluif.outport = aluif.porta | portb_temp;
 
 		aluif.zero_f = 0;
 		aluif.over_f = 0;
@@ -144,7 +146,7 @@ casez(aluif.aluop)
 
 	ALU_XOR	: begin
 
-		aluif.outport = aluif.porta ^ aluif.portb;
+		aluif.outport = aluif.porta ^ portb_temp;
 
 		aluif.zero_f = 0;
 		aluif.over_f = 0;
@@ -159,7 +161,7 @@ casez(aluif.aluop)
 
 	ALU_NOR	: begin
 
-		aluif.outport = ~ (aluif.porta | aluif.portb);
+		aluif.outport = ~ (aluif.porta | portb_temp);
 
 		aluif.zero_f = 0;
 		aluif.over_f = 0;
@@ -174,7 +176,7 @@ casez(aluif.aluop)
 
 	ALU_SLT	: begin
 
-		if ( $signed(aluif.porta) < $signed(aluif.portb) )
+		if ( $signed(aluif.porta) < $signed(portb_temp) )
 			aluif.outport = 1;
 		else
 			aluif.outport = 0;
@@ -193,7 +195,7 @@ casez(aluif.aluop)
 
 	ALU_SLTU	: begin
 
-		if ( aluif.porta < aluif.portb )
+		if ( aluif.porta < portb_temp )
 			aluif.outport = 1;
 		else
 			aluif.outport = 0;

@@ -4,7 +4,7 @@ Emily Fredette
 forward unit
 */
 `include "cpu_types_pkg.vh"
-
+`include "forward_unit_if.vh"
 
 module forward_unit (
   forward_unit_if fuif

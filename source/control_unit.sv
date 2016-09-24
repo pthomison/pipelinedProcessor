@@ -436,7 +436,7 @@ casez (opcode)
 		cuif.jal = 0; 		//1 for JAL instruction
 		cuif.extop = 1;		//1 for signed - 0 for zero
 		cuif.dWEN = 0;		//1 if writing data to memory
-		cuif.dREN = 1;		//1 if reading data from memory
+		cuif.dREN = 0;		//1 if reading data from memory
 		cuif.LUI = 1;		//1 for LUI instruction
 		cuif.imemREN = 1;	//1 unless HALT
 		cuif.BEQ = 0; 		//1 if BEQ - 0 if BNE

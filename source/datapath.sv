@@ -66,7 +66,7 @@ module datapath (
 	pipeline_register MWB(CLK, nRST, mwb_plif.pr);
 
 	//Hazard and Forwarding Unit
-	hazard_unit HU(huif.hu);
+	hazard_unit HU(CLK, huif.hu);
 	forward_unit FU(fuif.fu);
 
 	//
@@ -103,9 +103,10 @@ module datapath (
 	// inputs
 
 	// TODO: pcsrc is changing on the flush, fix that shit
-	assign pcif.pcenable = dpif.ihit && !huif.lw_nop;
+	assign pcif.pcenable = dpif.ihit && !huif.lw_nop && !huif.brch_flush && !huif.jmp_flush;
 	assign pcif.pcsrc    = idex_plif.pcsrc_out; 
 	
+	assign pcif.branch_pc4 = idex_plif.pcout_out + 4;
 	assign pcif.rdat1    = idex_plif.rdat1_out; 
 	assign pcif.immed    = idex_plif.immed_out; 
 	assign pcif.immedEXT = idex_plif.extop_out ? $signed(idex_plif.immed_out): {16'h0000, idex_plif.immed_out}; 
@@ -131,7 +132,7 @@ module datapath (
 
 	// Control Signals
 	assign ifid_plif.enable = ifid_enable_temp;//1; // UPDATE FOR PC_CHG INSTR
-	assign ifid_plif.flush  = huif.jmp_flush && dpif.ihit; // UPDATE FOR PC_CHG INSTR
+	assign ifid_plif.flush  = ( huif.jmp_flush || huif.brch_flush ) && dpif.ihit; // UPDATE FOR PC_CHG INSTR
 
 	// Input Assignments
 	assign ifid_plif.instruction_in = dpif.imemload;
@@ -165,7 +166,7 @@ module datapath (
 		else if (mwb_plif.MemtoReg_out) begin
 			wdat_temp = mwb_plif.dmemload_out;
 		end
-		else if (cuif.jal) begin
+		else if (mwb_plif.jal_out) begin
 			wdat_temp = mwb_plif.pcout_out + 4;
 		end
 		else begin
@@ -190,7 +191,7 @@ module datapath (
 
 	// Control Signals
 	assign idex_plif.enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;
-	assign idex_plif.flush  = huif.jmp_flush && dpif.ihit; // UPDATE FOR PC_CHG INSTR
+	assign idex_plif.flush  = ( huif.jmp_flush || huif.brch_flush ) && dpif.ihit; // UPDATE FOR PC_CHG INSTR
 
 	// Input Assignments
 	// assign idex_plif.PCplus4_in  = ifid_plif.PCplus4_out;
@@ -304,7 +305,20 @@ module datapath (
 	assign exm_plif.instruction_in = idex_plif.instruction_out;
 	assign exm_plif.immed_in    = idex_plif.immed_out;
 	assign exm_plif.zero_f_in   = aluif.zero_f;
-	assign exm_plif.outport_in  = aluif.outport;
+
+	word_t outport_temp;
+
+	always_comb begin
+		if (idex_plif.LUI_out) begin
+			outport_temp = {idex_plif.immed_out,16'h0000};
+		end else begin
+			outport_temp = aluif.outport;
+		end
+	end
+
+	assign exm_plif.outport_in  = outport_temp;
+
+
 	assign exm_plif.wsel_in     = wsel_temp;
 	assign exm_plif.rdat2_in    = temp_rdat2; //idex_plif.rdat2_out;
 	assign exm_plif.halt_in     = idex_plif.halt_out;
