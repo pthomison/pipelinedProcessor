@@ -102,7 +102,6 @@ module datapath (
 	//
 	// inputs
 
-	// TODO: pcsrc is changing on the flush, fix that shit
 	assign pcif.pcenable = dpif.ihit && !huif.lw_nop && !huif.brch_flush && !huif.jmp_flush;
 	assign pcif.pcsrc    = idex_plif.pcsrc_out; 
 	
@@ -209,11 +208,13 @@ module datapath (
 	begin
 		if (huif.lw_nop == 1) begin
 			dwen_temp = 0;
+			//dren_temp = 0;
 			rwen_temp = 0;
 			inst_temp = 32'h00000000;
 		end else begin
 			dwen_temp = cuif.dWEN;
 			rwen_temp = cuif.WEN;
+			//dren_temp = cuif.dren;
 			inst_temp = ifid_plif.instruction_out;
 		end
 	end
