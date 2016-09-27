@@ -102,13 +102,13 @@ module datapath (
 	//
 	// inputs
 
-	assign pcif.pcenable = dpif.ihit && !huif.lw_nop && !huif.brch_flush && !huif.jmp_flush;
+	assign pcif.pcenable = dpif.ihit && !huif.lw_nop;
 	assign pcif.pcsrc    = idex_plif.pcsrc_out; 
 	
 	assign pcif.branch_pc4 = idex_plif.pcout_out + 4;
 	assign pcif.rdat1    = idex_plif.rdat1_out; 
 	assign pcif.immed    = idex_plif.immed_out; 
-	assign pcif.immedEXT = idex_plif.extop_out ? $signed(idex_plif.immed_out): {16'h0000, idex_plif.immed_out}; 
+	assign pcif.immedEXT = idex_plif.extop_out ? {{16{idex_plif.immed_out[15]}}, idex_plif.immed_out}: {16'h0000, idex_plif.immed_out}; 
 	assign dpif.imemREN = cuif.imemREN;
 
 	
@@ -131,7 +131,8 @@ module datapath (
 
 	// Control Signals
 	assign ifid_plif.enable = ifid_enable_temp;//1; // UPDATE FOR PC_CHG INSTR
-	assign ifid_plif.flush  = ( huif.jmp_flush || huif.brch_flush ) && dpif.ihit; // UPDATE FOR PC_CHG INSTR
+	assign ifid_temp_flush_enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit:  dpif.ihit;
+	assign ifid_plif.flush  = ( huif.jmp_flush || huif.brch_flush ) && ifid_temp_flush_enable; // UPDATE FOR PC_CHG INSTR
 
 	// Input Assignments
 	assign ifid_plif.instruction_in = dpif.imemload;
@@ -189,8 +190,10 @@ module datapath (
 	// end
 
 	// Control Signals
-	assign idex_plif.enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;
-	assign idex_plif.flush  = ( huif.jmp_flush || huif.brch_flush ) && dpif.ihit; // UPDATE FOR PC_CHG INSTR
+	logic temp_flush_enable;
+	assign idex_plif.enable  = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;
+	assign idex_temp_flush_enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit:  dpif.ihit;
+	assign idex_plif.flush   = (huif.jmp_flush || huif.brch_flush ) && idex_temp_flush_enable; // UPDATE FOR PC_CHG INSTR
 
 	// Input Assignments
 	// assign idex_plif.PCplus4_in  = ifid_plif.PCplus4_out;

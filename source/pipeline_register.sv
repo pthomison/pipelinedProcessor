@@ -13,7 +13,7 @@ module pipeline_register (
 
 	import cpu_types_pkg::*;
 
-always_ff @(posedge CLK, negedge nRST, posedge prif.flush)
+always_ff @(posedge CLK, negedge nRST)
 begin
 	if (nRST == 0 || prif.flush == 1) begin
 		prif.shamt_out <= 0;

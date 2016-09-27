@@ -24,10 +24,8 @@ always_comb begin
 end
 
 //00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
-always_ff @ (posedge CLK)
+always_comb
 begin
-
-
 	if (huif.idex_pcsrc_out == 3 || huif.idex_pcsrc_out == 1 ) begin
 		huif.jmp_flush <= 1;
 	end else if (huif.idex_pcsrc_out == 2) begin

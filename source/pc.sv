@@ -55,10 +55,10 @@ module pc (
 			end
 			else begin
 				if (pcif.branch && pcif.zero_f) begin
-					pcnext = PCplus4;
+					pcnext = (pcif.immedEXT << 2) + pcif.branch_pc4;
 				end
 				else begin
-					pcnext = (pcif.immedEXT << 2) + pcif.branch_pc4;
+					pcnext = PCplus4;
 				end
 			end
 		end
