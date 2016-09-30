@@ -24,17 +24,60 @@ always_comb begin
 end
 
 //00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
-always_comb
-begin
-	if (huif.idex_pcsrc_out == 3 || huif.idex_pcsrc_out == 1 ) begin
-		huif.jmp_flush <= 1;
-	end else if (huif.idex_pcsrc_out == 2) begin
-		huif.brch_flush <= 1;
-	end
-	else begin
-		huif.jmp_flush <= 0;
-		huif.brch_flush <= 0;
-	end
+always_comb begin
+
+
+ casez(huif.idex_pcsrc_out) 
+ 	1:	begin
+ 			huif.jmp_flush = 1;
+ 			huif.brch_flush = 0;
+ 		end
+ 	2:	begin
+ 			if (huif.idex_BEQ && huif.idex_branch && huif.alu_zero_f) begin
+ 				huif.brch_flush = 1;
+ 				huif.jmp_flush = 0;
+ 			end
+ 			else if (!huif.idex_BEQ && huif.idex_branch && !huif.alu_zero_f) begin
+ 				huif.brch_flush = 1;
+ 				huif.jmp_flush = 0;
+ 			end
+ 			else begin
+ 				huif.brch_flush = 0;
+ 				huif.jmp_flush = 0;
+ 			end
+ 		end
+ 	3:	begin
+ 			huif.jmp_flush = 1;
+ 			huif.brch_flush = 0;
+ 		end
+ 	default:	begin
+ 			huif.jmp_flush = 0;
+ 			huif.brch_flush = 0;
+ 	end 
+ endcase
+
 end
+
+
+// 	if (huif.idex_pcsrc_out == 3 || huif.idex_pcsrc_out == 1 ) begin
+// 		huif.jmp_flush = 1;
+// 	end 
+// 	else if (huif.idex_pcsrc_out == 2) begin
+// 		if (huif.idex_BEQ && huif.idex_branch && huif.alu_zero_f) begin
+// 			huif.brch_flush = 1;
+// 		end
+// 		else if (!huif.idex_BEQ && huif.idex_branch && !huif.alu_zero_f) begin
+// 			huif.brch_flush = 1;
+// 		end
+// 		else begin
+// 			huif.brch_flush = 0;
+// 		end
+
+// 	end
+// 	else begin
+// 		huif.jmp_flush = 0;
+// 		huif.brch_flush = 0;
+// 	end
+// end
 
 endmodule

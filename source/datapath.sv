@@ -72,15 +72,10 @@ module datapath (
 	//
 	// Forwarding Unit
 	//
-
 	assign fuif.exm_WEN     = exm_plif.WEN_out;
-	//assign fuif.exm_rd_out  = exm_plif.rd_out;
 	assign fuif.idex_rt_out = idex_plif.rt_out;
 	assign fuif.idex_rs_out = idex_plif.rs_out;
 	assign fuif.mwb_WEN     = mwb_plif.WEN_out;
-	//assign fuif.mwb_rd_out  = mwb_plif.rd_out;
-	//assign fuif.mwb_rt_out  = mwb_plif.rt_out;
-	//assign fuif.exm_rt_out  = exm_plif.rt_out;
 	assign fuif.exm_itype_out = exm_plif.itype_out;
 	assign fuif.mwb_itype_out = mwb_plif.itype_out;
 
@@ -95,7 +90,10 @@ module datapath (
 	assign huif.ifid_rs_out   = ifid_plif.rs_out;
 	assign huif.idif_rt_out   = ifid_plif.rt_out;
 	assign huif.idex_pcsrc_out = idex_plif.pcsrc_out;
-
+	//NEW STUFF - HU needs these to determine if branching
+	assign huif.idex_BEQ             = idex_plif.BEQ_out;
+	assign huif.idex_branch          = idex_plif.branch_out;
+	assign huif.alu_zero_f           = aluif.zero_f; 
 
 	//
 	// Instruction Fetch: PC Block
@@ -159,7 +157,6 @@ module datapath (
 	word_t wdat_temp;
 
 	always_comb begin
-		// rfif.wdat = {mwb_plif.immed, 16'h0000};
 		if (mwb_plif.LUI_out) begin
 			wdat_temp = {mwb_plif.immed_out, 16'h0000};
 		end
@@ -167,7 +164,7 @@ module datapath (
 			wdat_temp = mwb_plif.dmemload_out;
 		end
 		else if (mwb_plif.jal_out) begin
-			wdat_temp = mwb_plif.pcout_out + 4;
+			wdat_temp = mwb_plif.pcout_out;
 		end
 		else begin
 			wdat_temp = mwb_plif.outport_out;

@@ -15,7 +15,7 @@ module pipeline_register (
 
 always_ff @(posedge CLK, negedge nRST)
 begin
-	if (nRST == 0 || prif.flush == 1) begin
+	if (nRST == 0) begin 
 		prif.shamt_out <= 0;
 		prif.instruction_out <= 0;
 		prif.rdat1_out <= 0;
@@ -45,7 +45,38 @@ begin
 		prif.zero_f_out <= 0;
 		prif.itype_out <= 0;
 
-	end else begin
+	end 
+	else if (prif.flush == 1) begin
+		prif.shamt_out <= 0;
+		prif.instruction_out <= 0;
+		prif.rdat1_out <= 0;
+		prif.rdat2_out <= 0;
+		prif.pcout_out <= 0;
+		prif.outport_out <= 0;
+		prif.dmemload_out <= 0;
+		prif.wsel_out <= 0;
+		prif.rs_out <= 0;
+		prif.rt_out <= 0;
+		prif.rd_out <= 0;
+		prif.immed_out <= 0;
+		prif.ALUop_out <= aluop_t'(0000);
+		prif.ALUsrc_out <= 0;
+		prif.pcsrc_out <= 0;
+		prif.RegDest_out <= 0;
+		prif.branch_out <= 0;
+		prif.MemtoReg_out <= 0;
+		prif.WEN_out <= 0;
+		prif.jal_out <= 0;
+		prif.extop_out <= 0;
+		prif.dWEN_out <= 0;
+		prif.dREN_out <= 0;
+		prif.LUI_out <= 0;
+		prif.BEQ_out <= 0;
+		prif.halt_out <= 0;
+		prif.zero_f_out <= 0;
+		prif.itype_out <= 0;
+	end
+	else begin
 		if (prif.enable) begin
 			prif.shamt_out <= prif.shamt_in;
 			prif.instruction_out <= prif.instruction_in;
