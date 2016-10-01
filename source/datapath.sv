@@ -99,8 +99,10 @@ module datapath (
 	// Instruction Fetch: PC Block
 	//
 	// inputs
+	logic pcif_enable_temp;
+	assign pcif_enable_temp = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;
 
-	assign pcif.pcenable = dpif.ihit && !huif.lw_nop;
+	assign pcif.pcenable = pcif_enable_temp && !huif.lw_nop;
 	assign pcif.pcsrc    = idex_plif.pcsrc_out; 
 	
 	assign pcif.branch_pc4 = idex_plif.pcout_out + 4;

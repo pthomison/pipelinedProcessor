@@ -41,13 +41,13 @@ module pc (
 		end
 
 		else if (pcif.pcsrc == 2'b01) begin
-			pcnext = pcif.rdat1;
+			pcnext = pcif.rdat1 + 4;
 		end
 
 		else if (pcif.pcsrc == 2'b10) begin
 			if (pcif.BEQ) begin
 				if (pcif.branch && pcif.zero_f) begin
-					pcnext = (pcif.immedEXT << 2) + pcif.branch_pc4-4;
+					pcnext = (pcif.immedEXT << 2) + pcif.branch_pc4;
 				end
 				else begin
 					pcnext = PCplus4;
