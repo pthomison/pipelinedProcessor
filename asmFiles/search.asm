@@ -26,7 +26,7 @@ notfound:
   halt
 
 
-  org 0x80
+  org 0x4FFC
 item_position:
   cfw 0                       # should be found at 0x0124
 search_item:
