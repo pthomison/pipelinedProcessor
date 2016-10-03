@@ -41,7 +41,7 @@ module pc (
 		end
 
 		else if (pcif.pcsrc == 2'b01) begin
-			pcnext = pcif.rdat1 + 4;
+			pcnext = pcif.rdat1;
 		end
 
 		else if (pcif.pcsrc == 2'b10) begin

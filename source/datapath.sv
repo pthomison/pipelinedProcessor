@@ -166,7 +166,7 @@ module datapath (
 			wdat_temp = mwb_plif.dmemload_out;
 		end
 		else if (mwb_plif.jal_out) begin
-			wdat_temp = mwb_plif.pcout_out;
+			wdat_temp = mwb_plif.pcout_out + 4;
 		end
 		else begin
 			wdat_temp = mwb_plif.outport_out;
@@ -178,24 +178,11 @@ module datapath (
 	//IDEX Pipeline Register Assignments
 	//
 
-	// logic idex_enable_temp;
-
-	// always_comb begin
-	// 	if (huif.lw_nop == 1) begin
-	// 		idex_enable_temp = 0;
-	// 	end else begin
-	// 		idex_enable_temp = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;
-	// 	end
-	// end
-
 	// Control Signals
 	logic temp_flush_enable;
 	assign idex_plif.enable  = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;
 	assign idex_temp_flush_enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit:  dpif.ihit;
 	assign idex_plif.flush   = (huif.jmp_flush || huif.brch_flush ) && idex_temp_flush_enable; // UPDATE FOR PC_CHG INSTR
-
-	// Input Assignments
-	// assign idex_plif.PCplus4_in  = ifid_plif.PCplus4_out;
 	
 	assign idex_plif.rdat1_in    = rfif.rdat1;
 	assign idex_plif.rdat2_in    = rfif.rdat2;
