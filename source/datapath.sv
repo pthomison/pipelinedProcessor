@@ -393,12 +393,13 @@ module datapath (
 
 
 	//HALT latch
+
 	always_ff @(posedge CLK, negedge nRST) begin
 		if (!nRST) begin
 			temphalt = 0;
 		end
 		else begin
-			temphalt = mwb_plif.halt_out;
+			temphalt = exm_plif.halt_out || dpif.halt;
 		end
 	end
 	assign dpif.halt = temphalt;

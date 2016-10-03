@@ -3,10 +3,10 @@
 #--------------------------------------
   org 0x0000
 
-  ori   $2, $zero, start
-  ori   $1, $zero, 1
-  ori   $8, $zero, 4
-  ori   $6, $zero, 0x0F00
+  ori   $2, $2, start
+  ori   $1, $1, 1
+  ori   $8, $8, 4
+  ori   $6, $6, 0x0F00
   lw    $15, 0($6)
 
 loop:
