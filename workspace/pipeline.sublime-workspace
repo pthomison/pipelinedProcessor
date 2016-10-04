@@ -63,7 +63,7 @@
 			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/search.asm",
 			"settings":
 			{
-				"buffer_size": 2355,
+				"buffer_size": 2357,
 				"line_ending": "Unix"
 			}
 		},
@@ -95,7 +95,7 @@
 			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/pc.sv",
 			"settings":
 			{
-				"buffer_size": 1181,
+				"buffer_size": 1183,
 				"line_ending": "Unix"
 			}
 		},
@@ -103,7 +103,7 @@
 			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/datapath.sv",
 			"settings":
 			{
-				"buffer_size": 11380,
+				"buffer_size": 11519,
 				"line_ending": "Unix"
 			}
 		},
@@ -192,7 +192,7 @@
 	],
 	"find":
 	{
-		"height": 35.0
+		"height": 26.0
 	},
 	"find_in_files":
 	{
@@ -275,7 +275,7 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2355,
+						"buffer_size": 2357,
 						"regions":
 						{
 						},
@@ -381,7 +381,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1494.0,
+						"translation.y": 1638.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
@@ -399,15 +399,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1181,
+						"buffer_size": 1183,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								840,
-								840
+								0,
+								0
 							]
 						],
 						"settings":
@@ -428,15 +428,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 11380,
+						"buffer_size": 11519,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4187,
-								4187
+								0,
+								0
 							]
 						],
 						"settings":
