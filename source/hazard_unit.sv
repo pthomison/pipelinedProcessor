@@ -17,7 +17,7 @@ always_comb begin
 	huif.lw_nop = 0;
 	if ((huif.idex_dren_out == 1) && 
 		((huif.idex_rt_out == huif.ifid_rs_out) || 
-			(huif.idex_rt_out == huif.idif_rt_out)))
+			(huif.idex_rt_out == huif.ifid_rt_out)))
 	begin
 		huif.lw_nop = 1;
 	end

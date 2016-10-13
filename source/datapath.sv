@@ -88,7 +88,7 @@ module datapath (
 	assign huif.idex_dren_out = idex_plif.dREN_out;
 	assign huif.idex_rt_out   = idex_plif.rt_out;
 	assign huif.ifid_rs_out   = ifid_plif.rs_out;
-	assign huif.idif_rt_out   = ifid_plif.rt_out;
+	assign huif.ifid_rt_out   = ifid_plif.rt_out;
 	assign huif.idex_pcsrc_out = idex_plif.pcsrc_out;
 	//NEW STUFF - HU needs these to determine if branching
 	assign huif.idex_BEQ             = idex_plif.BEQ_out;
