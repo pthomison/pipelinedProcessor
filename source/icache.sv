@@ -10,7 +10,7 @@
 
 module icache (
   input CLK, nRST,
-  datapath_cache_if.cache dcif,
+  datapath_cache_if.cache dcif, 
   caches_if.caches cif
 );
 
@@ -23,10 +23,13 @@ logic enable;
 assign reqAddr = dcif.iaddr;
 assign enable  = 
 
-always_ff @(posedge clk, negedge nRST) begin
+always_ff @(posedge CLK, negedge nRST) begin
 	if(nRST == 0) begin
 		datasource <= '0;
 	end else begin
 		 <= ;
 	end
 end
+
+
+endmodule
