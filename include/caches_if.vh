@@ -61,6 +61,15 @@ interface caches_if;
             iREN, iaddr
   );
 
+  modport tb(
+    input  dREN, dWEN, daddr, dstore,
+           ccwrite, cctrans,
+           iREN, iaddr,
+    output dwait, dload,
+           ccwait, ccinv, ccsnoopaddr,
+           iwait, iload
+  );
+
 
 endinterface
 

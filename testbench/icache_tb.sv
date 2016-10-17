@@ -23,7 +23,7 @@ module icache_tb;
   caches_if cif ();
 
   // test program
-  test PROG ();
+  test PROG (CLK, nRST, dcif, cif);
   // DUT
 `ifndef MAPPED
   icache DUT(CLK, nRST, dcif, cif);
@@ -53,22 +53,63 @@ module icache_tb;
 
 endmodule
 
+
+
+// Signals Going Into The DUT
+// Datapath: imemREN, imemaddr
+// Cache: iwait, iload
+
 program test(
-  input logic CLK, nRST,
-  cif.caches caif
+  input logic CLK, 
+  output logic nRST,
+  datapath_cache_if.tb dcif,
+  caches_if.tb cif
 );
 
+import cpu_types_pkg::*;
+word_t reqAddr;
 
 parameter PERIOD = 10;
 initial begin
 
+  
+
+  // Reseting
+  #(PERIOD*2);
+  nRST = 0;
+  #(PERIOD*2);
+  nRST = 1;
   #(PERIOD);
+
+  // Requesting First Piece of Data, miss
+
+  cif.iwait = 0;
+  cif.iload = 0;
+  
+  reqAddr = 32'h00001000;
+  dcif.imemREN = 1;
+  dcif.imemaddr = reqAddr;
+
+  #(PERIOD);
+
+  if (cif.iREN) begin
+    cif.iwait = 1;
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    cif.iload = 32'h00DEAD00;
+    #1;
+    cif.iwait = 0;
+    dcif.imemREN = 0;
+  end
 
   #(PERIOD);
   
   #(PERIOD);
 
   #(PERIOD);
+
+  #(PERIOD*100);
 
 end
 endprogram
