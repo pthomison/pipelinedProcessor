@@ -68,6 +68,7 @@ program test(
 
 import cpu_types_pkg::*;
 word_t reqAddr;
+word_t expected_imemload;
 
 parameter PERIOD = 10;
 initial begin
@@ -80,8 +81,10 @@ initial begin
   #(PERIOD*2);
   nRST = 1;
   #(PERIOD);
+  expected_imemload = 32'h00000000;
 
   // Requesting First Piece of Data, miss
+  // Many clk cycles until iload ready
 
   cif.iwait = 0;
   cif.iload = 0;
@@ -98,10 +101,161 @@ initial begin
     #(PERIOD);
     #(PERIOD);
     cif.iload = 32'h00DEAD00;
+    expected_imemload = 32'h00DEAD00;
     #1;
     cif.iwait = 0;
     dcif.imemREN = 0;
   end
+  #(PERIOD)
+  expected_imemload = 32'h00000000;
+
+  // Reading, MISS, OVERWRITE previous data
+  // Many clk cycles until iload ready
+  #(PERIOD)
+  #(PERIOD)
+  cif.iwait = 0;
+  cif.iload = 0;
+  
+  reqAddr = 32'h00011000;
+  dcif.imemREN = 1;
+  dcif.imemaddr = reqAddr;
+
+  #(PERIOD);
+
+  if (cif.iREN) begin
+    cif.iwait = 1;
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    cif.iload = 32'h00BEEF00;
+    expected_imemload = 32'h00BEEF00;
+    #1;
+    cif.iwait = 0;
+    dcif.imemREN = 0;
+  end
+  #(PERIOD)
+  expected_imemload = 32'h00000000;
+
+  // Reading, MISS
+  // Many clk cycles until iload ready
+  #(PERIOD)
+  #(PERIOD)
+  cif.iwait = 0;
+  cif.iload = 0;
+  
+  reqAddr = 32'h00011010;
+  dcif.imemREN = 1;
+  dcif.imemaddr = reqAddr;
+
+  #(PERIOD);
+
+  if (cif.iREN) begin
+    cif.iwait = 1;
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    cif.iload = 32'h00DEED00;
+    expected_imemload = 32'h00DEED00;
+    #1;
+    cif.iwait = 0;
+    dcif.imemREN = 0;
+  end
+  #(PERIOD)
+  expected_imemload = 32'h00000000;
+
+  // Reading, HIT, output is BEEF
+  // Many clk cycles until iload ready
+  #(PERIOD)
+  #(PERIOD)
+  cif.iwait = 0;
+  cif.iload = 0;
+  
+  reqAddr = 32'h00011000;
+  dcif.imemREN = 1;
+  dcif.imemaddr = reqAddr;
+
+  #(PERIOD);
+  expected_imemload = 32'h00BEEF00;
+  if (cif.iREN) begin
+    cif.iwait = 1;
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    cif.iload = 32'h00FEEF00; //dont care b/c hit
+    #1;
+    cif.iwait = 0;
+    dcif.imemREN = 0;
+  end
+  #(PERIOD)
+  expected_imemload = 32'h00000000;
+
+  // Reading, MISS
+  // Many clk cycles until iload ready
+  #(PERIOD)
+  #(PERIOD)
+  cif.iwait = 0;
+  cif.iload = 0;
+  
+  reqAddr = 32'h00011110;
+  dcif.imemREN = 1;
+  dcif.imemaddr = reqAddr;
+
+  #(PERIOD);
+
+  if (cif.iREN) begin
+    cif.iwait = 1;
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    cif.iload = 32'h00FFFF00;
+    expected_imemload = 32'h00FFFF00;
+    #1;
+    cif.iwait = 0;
+    dcif.imemREN = 0;
+  end
+  #(PERIOD)
+  expected_imemload = 32'h00000000;
+
+  // HIT, output is BEEF
+  // Many clk cycles until iload ready
+  #(PERIOD)
+  #(PERIOD)
+  cif.iwait = 0;
+  cif.iload = 0;
+  
+  reqAddr = 32'h00011000;
+  dcif.imemREN = 1;
+  dcif.imemaddr = reqAddr;
+
+  #(PERIOD);
+  expected_imemload = 32'h00BEEF00;
+  if (cif.iREN) begin
+    cif.iwait = 1;
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    #(PERIOD);
+    cif.iload = 32'h00FEEF00; //dont care b/c hit
+    #1;
+    cif.iwait = 0;
+    dcif.imemREN = 0;
+  end
+  #(PERIOD)
+  expected_imemload = 32'h00000000;
 
   #(PERIOD);
   
@@ -109,7 +263,7 @@ initial begin
 
   #(PERIOD);
 
-  #(PERIOD*100);
+  #(PERIOD*10);
 
 end
 endprogram
