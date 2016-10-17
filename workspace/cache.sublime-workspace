@@ -1,0 +1,474 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"idex",
+				"idex_branch"
+			],
+			[
+				"outpo",
+				"outport_temp"
+			],
+			[
+				"immed",
+				"immed_out	Field"
+			],
+			[
+				"j",
+				"jmp_flush	Field"
+			],
+			[
+				"br",
+				"brch_flush	Field"
+			],
+			[
+				"pcou",
+				"pcout_out	Field"
+			],
+			[
+				"ifl",
+				"iflag_out	Field"
+			],
+			[
+				"exm",
+				"exm_plif"
+			],
+			[
+				"exm_",
+				"exm_iflag_out"
+			],
+			[
+				"ex",
+				"exm_plif"
+			],
+			[
+				"ou",
+				"outport_out	Field"
+			],
+			[
+				"PC",
+				"PCplus4_out	Field"
+			],
+			[
+				"in",
+				"instruction_out	Field"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/icache.sv",
+			"settings":
+			{
+				"buffer_size": 484,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/cpu_types_pkg.vh",
+			"settings":
+			{
+				"buffer_size": 3392,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/caches_if.vh",
+			"settings":
+			{
+				"buffer_size": 1640,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/ichache_tb.sv",
+			"settings":
+			{
+				"buffer_size": 1207,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 339.0,
+		"last_filter": "Package Control: ",
+		"selected_items":
+		[
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 432.0
+	},
+	"console":
+	{
+		"height": 139.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '2915d1851351e5ee549c20394736b442' + '8bc59f460fa1548d1514676163dafc88'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) "
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include"
+	],
+	"file_history":
+	[
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/pc_tb.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/register_file.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/datapath_cache_if.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/hazard_unit_tb.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/cpu_types_pkg.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/memory_control_tb.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/datapath.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/alu_file.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/btb.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/hazard_unit.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/ram.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/pc.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/comparison_table.txt",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/fib.asm",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/search.asm",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/cache_control_if.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/fib.txt",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/mult.txt",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/test.ldst2.asm",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/pc_if.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/mult.asm",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/pipeline_register.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/basicFail.asm",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/test.branchjump1.asm",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/hazard_unit_if.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/control_unit.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/forward_unit.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/test.rtype.asm",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/forward_unit_if.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/pipeline_register_if.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/control_unit_if.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/pipeline_register_tb.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/pipeline.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/request_unit.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/test.ldst1.asm",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/memory_control.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/alu_file_tb.sv",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/request_unit_if.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles/slt_test.asm",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/register_file_if.vh",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/alu_file_if.vh"
+	],
+	"find":
+	{
+		"height": 26.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"4",
+			"wdat",
+			"cuif.pcsrc",
+			"pcsrc",
+			"lw_no",
+			"pcif",
+			"lw_nop",
+			"jal",
+			"flush",
+			"aluif.portb",
+			"flush",
+			"jmp_",
+			"pcif",
+			"iflag",
+			"fuif",
+			"HAZARD",
+			"huif",
+			"hazard",
+			"prif",
+			"enable",
+			"dWEN = 1",
+			"WEN",
+			"rfif",
+			"imemad",
+			"Memt",
+			"1 for ALU data - 0 for data from cache",
+			"jump",
+			"pcif.pcnext",
+			"cuif",
+			"aluif",
+			"jump"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"portb_temp",
+			"itype",
+			"FORWARD",
+			"fuif",
+			"forward",
+			"huif",
+			"prif",
+			"0 for ALU data - 1 for data from cache",
+			"pcsrc",
+			"pcnext",
+			"pcif",
+			"pcsrc"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/icache.sv",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 484,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								191,
+								191
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/cpu_types_pkg.vh",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3392,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2106.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/include/caches_if.vh",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1640,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1639,
+								1639
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 378.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 3,
+					"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/ichache_tb.sv",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1207,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1163,
+								1163
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SystemVerilog/SystemVerilog.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.388206388206,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "cache.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 292.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
