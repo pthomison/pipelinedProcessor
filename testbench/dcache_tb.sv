@@ -139,7 +139,7 @@ program test(
     //        dmemstore, dmemaddr, imemaddr
 
 import cpu_types_pkg::*;
-word_t expected_dmemload;
+word_t expected_dmemload1, expected_dmemload2;
 
 parameter PERIOD = 10;
 initial begin
@@ -150,7 +150,8 @@ initial begin
   #(PERIOD*2);
   nRST = 1;
   #(PERIOD);
-  expected_dmemload = 32'h00000000;
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
 
 
 
@@ -178,22 +179,81 @@ initial begin
 
   //
   // read miss
+  // cache1
   //
   dcif.halt = 0;
   dcif.dmemWEN = 0;
   dcif.dmemREN = 1;
-  dcif.dmemstore = 32'h00BEEF00; //dc
+  dcif.dmemstore = 32'h000000DC; //dc
   dcif.dmemaddr = 32'h00000100;
 
-  expected_dmemload = 32'h000050;
+  expected_dmemload1 = 32'h00000050;
 
   @(dcif.dhit);
   #(PERIOD*5)
 
   dcif.dmemWEN = 0;
 
-  expected_dmemload = 32'h00000000;
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
 
+
+  //
+  // read miss - fill cache 2 instead - same index
+  // cache2
+  //
+  dcif.halt = 0;
+  dcif.dmemWEN = 0;
+  dcif.dmemREN = 1;
+  dcif.dmemstore = 32'h000000DC; //dc
+  dcif.dmemaddr = 32'h0000A004;
+
+  expected_dmemload1 = 32'h00000002;
+
+  @(dcif.dhit);
+  #(PERIOD*5)
+
+  dcif.dmemWEN = 0;
+
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
+
+  //
+  // read hit - cache 1
+  //
+  dcif.halt = 0;
+  dcif.dmemWEN = 0;
+  dcif.dmemREN = 1;
+  dcif.dmemstore = 32'h000000DC; //dc
+  dcif.dmemaddr = 32'h00000104;
+
+  expected_dmemload1 = 32'h000000A0;
+
+
+  @(dcif.dhit);
+  #(PERIOD)
+
+  dcif.dmemWEN = 0;
+
+  expected_dmemload1 = 32'h00000000;
+
+  //
+  // read hit - cache 2
+  //
+  dcif.halt = 0;
+  dcif.dmemWEN = 0;
+  dcif.dmemREN = 1;
+  dcif.dmemstore = 32'h000000DC; //dc
+  dcif.dmemaddr = 32'h0000A000;
+
+  expected_dmemload1 = 32'h00000001;
+
+  @(dcif.dhit);
+  #(PERIOD)
+
+  dcif.dmemWEN = 0;
+
+  expected_dmemload1 = 32'h00000000;
 
 
 
@@ -206,25 +266,58 @@ initial begin
   dcif.halt = 0;
   dcif.dmemWEN = 1;
   dcif.dmemREN = 0;
-  dcif.dmemstore = 32'h00BEEF00; //dc
-  dcif.dmemaddr = 32'h00001000;
+  dcif.dmemstore = 32'h00BEEF00;
+  dcif.dmemaddr = 32'h0000B000;
 
-  expected_dmemload = 32'h00BEEF00;
+  expected_dmemload1 = 32'h00BEEF00;
+  @(dcif.dhit);
+  dcif.dmemWEN = 0;
+  #(PERIOD);
+  expected_dmemload1 = 32'h00000000;
 
 
+
+  //
+  // write hit
+  // cache1
+  //
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'h00DEAD00;
+  dcif.dmemaddr = 32'h0000B000;
+
+  expected_dmemload1 = 32'h00DEAD00;
 
   @(dcif.dhit);
 
   dcif.dmemWEN = 0;
 
+  #(PERIOD);
+  expected_dmemload1 = 32'h00000000;
+  #(PERIOD*5)
 
 
+  //
+  // read miss
+  // at this point, recUsed is 0, means cache 1 used recently
+  // want to load data into cache 2 = destination is 1
+  // which is CLEAN
+  //
+  dcif.halt = 0;
+  dcif.dmemWEN = 0;
+  dcif.dmemREN = 1;
+  dcif.dmemstore = 32'h000000DC; //dc
+  dcif.dmemaddr = 32'h0000C000;
 
-  expected_dmemload = 32'h00000000;
+  expected_dmemload1 = 32'h0000000C;
 
+  @(dcif.dhit);
+  #(PERIOD)
 
+  dcif.dmemWEN = 0;
 
-
+  expected_dmemload1 = 32'h00000000;
 
 
 
@@ -236,6 +329,21 @@ initial begin
   //
   // halt
   //
+  dcif.halt = 1;
+  dcif.dmemWEN = 0;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'h000000DC; //dc
+  dcif.dmemaddr = 32'h0000C000; //dc
+
+  expected_dmemload1 = 32'h00000000;
+
+    #(PERIOD)
+
+  dcif.dmemWEN = 0;
+
+  expected_dmemload1 = 32'h00000000;
+
+
 
 
 
