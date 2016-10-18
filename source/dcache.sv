@@ -21,39 +21,47 @@ typedef struct packed {
 	word_t wordB;
 } block;
 
-dcachef_t cacheOneAddr    [15:0];
-block     cacheOneData    [15:0];
-logic     cacheOneValid   [15:0];
-logic     cacheOneDirty   [15:0];
-logic     cacheOneRecUsed [15:0];
+typedef struct packed {
+	dcachef_t addr;
+	block     data;
+	logic     valid;
+	logic     dirty
+} frame;
 
-dcachef_t cacheTwoAddr    [15:0];
-block     cacheTwoData    [15:0];
-logic     cacheTwoValid   [15:0];
-logic     cacheTwoDirty   [15:0];
-logic     cacheTwoRecUsed [15:0];
+frame cacheOne [15:0];
+frame cacheTwo [15:0];
 
-dcachef_t reqAddr;
-word_t mdata, cdata;
+logic recUsed [15:0];
 
-block dataBlockOne, dataBlockTwo;
+dcachef_t reqAddr, destCurrAddr;
+word_t cdata, mload, mstore;
 
 logic updateRead, updateWrite;
 
+word_t loadAddrA, loadAddrB;
+
 logic destination; // 0 for A, 1 for B
 
-logic recordDirty;
-
-typedef enum logic [:0] {
-IDLE            = 2'b00,
-READHIT         = 2'b01,
-WRITEHIT        = 2'b10,
-MISSCHECK       = 2'b11,
-DIRTYCLEAN
-} controllerState;
+logic destinationDirty;
 
 controllerState currState;
 controllerState nextState;
+
+typedef enum logic [3:0] {
+IDLE         = 4'h0,
+READHIT      = 4'h1,
+MISSCHECK    = 4'h2,
+WRITEHIT     = 4'h3,
+DIRTYCLEANA  = 4'h4,
+DIRTYCLEANB  = 4'h5,
+READREQA     = 4'h6,
+READREQB     = 4'h7,
+READLOADA    = 4'h8,
+READLOADB    = 4'h9,
+FLUSH        = 4'hA,
+STOP         = 4'hB
+} controllerState;
+
 
 // Type Casting To ICache Address
 assign reqAddr = icachef_t'(dcif.imemaddr);
@@ -66,31 +74,32 @@ assign mstore  = dcif.dmemstore;
 // Handles nRST and writing in new values
 always_ff @(posedge CLK, negedge nRST) begin
 	if(nRST == 0) begin
-		cacheOneAddr    <= '{default:'0};
-		cacheOneData    <= '{default:'0};
-		cacheOneValid   <= '{default:'0};
-		cacheOneDirty   <= '{default:'0};
-		cacheOneRecUsed <= '{default:'0};
+		cacheOne    <= '{default:'0};
 	end else begin
 		if (destination == 0) begin
 			if (updateRead == 1) begin
-				cacheOneAddr[reqAddr.idx].tag <= reqAddr.tag;
-				cacheOneAddr[reqAddr.idx].idx <= reqAddr.idx;
-				cacheOneAddr[reqAddr.idx].bytoff <= reqAddr.bytoff;
-				cacheOneData[reqAddr.idx] <= mload;
-				cacheOneValid[reqAddr.idx] <= 1;
-				cacheOneDirty[reqAddr.idx] <= 0;
-				cacheOneRecUsed[reqAddr.idx] <= 1;
+				cacheOne[reqAddr.idx].addr.tag    <= reqAddr.tag;
+				cacheOne[reqAddr.idx].addr.idx    <= reqAddr.idx;
+				cacheOne[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
+				cacheOne[reqAddr.idx].data        <= mload;
+				cacheOne[reqAddr.idx].valid       <= 1;
+				cacheOne[reqAddr.idx].dirty       <= 0;
+				recUsed[reqAddr.idx]              <= 0;
 			end
 
 			if (updateWrite == 1) begin
-				cacheOneAddr[reqAddr.idx].tag <= reqAddr.tag;
-				cacheOneAddr[reqAddr.idx].idx <= reqAddr.idx;
-				cacheOneAddr[reqAddr.idx].bytoff <= reqAddr.bytoff;
-				cacheOneData[reqAddr.idx] <= mstore;
-				cacheOneValid[reqAddr.idx] <= 1;
-				cacheOneDirty[reqAddr.idx] <= 0;
-				cacheOneRecUsed[reqAddr.idx] <= 0;
+				cacheOne[reqAddr.idx].addr.tag    <= reqAddr.tag;
+				cacheOne[reqAddr.idx].addr.idx    <= reqAddr.idx;
+				cacheOne[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
+				//cacheOne[reqAddr.idx].data        <= mstore;
+				cacheOne[reqAddr.idx].valid       <= 1;
+				cacheOne[reqAddr.idx].dirty       <= 1;
+
+				if (reqAddr.blkoff == 0) begin
+					cacheOne[reqAddr.idx].data.wordA <= mstore;
+				end else begin
+					cacheOne[reqAddr.idx].data.wordB <= mstore;
+				end
 			end
 		end
 	end
@@ -100,31 +109,32 @@ end
 // Handles nRST and writing in new values
 always_ff @(posedge CLK, negedge nRST) begin
 	if(nRST == 0) begin
-		cacheTwoAddr    <= '{default:'0};
-		cacheTwoData    <= '{default:'0};
-		cacheTwoValid   <= '{default:'0};
-		cacheTwoDirty   <= '{default:'0};
-		cacheTwoRecUsed <= '{default:'0};
+		cacheTwo    <= '{default:'0};
 	end else begin
 		if (destination == 1) begin
-			if (updateTwoRead == 1) begin
-				cacheTwoAddr[reqAddr.idx].tag <= reqAddr.tag;
-				cacheTwoAddr[reqAddr.idx].idx <= reqAddr.idx;
-				cacheTwoAddr[reqAddr.idx].bytoff <= reqAddr.bytoff;
-				cacheTwoData[reqAddr.idx] <= mload;
-				cacheTwoValid[reqAddr.idx] <= 1;
-				cacheTwoDirty[reqAddr.idx] <= 0;
-				cacheTwoRecUsed[reqAddr.idx] <= 1;
+			if (updateRead == 1) begin
+				cacheTwo[reqAddr.idx].addr.tag    <= reqAddr.tag;
+				cacheTwo[reqAddr.idx].addr.idx    <= reqAddr.idx;
+				cacheTwo[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
+				cacheTwo[reqAddr.idx].data        <= mload;
+				cacheTwo[reqAddr.idx].valid       <= 1;
+				cacheTwo[reqAddr.idx].dirty       <= 0;
+				recUsed[reqAddr.idx]              <= 1;
 			end
 
-			if (updateTwoWrite == 1) begin
-				cacheTwoAddr[reqAddr.idx].tag <= reqAddr.tag;
-				cacheTwoAddr[reqAddr.idx].idx <= reqAddr.idx;
-				cacheTwoAddr[reqAddr.idx].bytoff <= reqAddr.bytoff;
-				cacheTwoData[reqAddr.idx] <= mstore;
-				cacheTwoValid[reqAddr.idx] <= 1;
-				cacheTwoDirty[reqAddr.idx] <= 0;
-				cacheTwoRecUsed[reqAddr.idx] <= 0;
+			if (updateWrite == 1) begin
+				cacheTwo[reqAddr.idx].addr.tag    <= reqAddr.tag;
+				cacheTwo[reqAddr.idx].addr.idx    <= reqAddr.idx;
+				cacheTwo[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
+				cacheTwo[reqAddr.idx].data        <= mstore;
+				cacheTwo[reqAddr.idx].valid       <= 1;
+				cacheTwo[reqAddr.idx].dirty       <= 1;
+
+				if (reqAddr.blkoff == 0) begin
+					cacheTwo[reqAddr.idx].data.wordA <= mstore;
+				end else begin
+					cacheTwo[reqAddr.idx].data.wordB <= mstore;
+				end
 			end
 		end
 	end
@@ -132,54 +142,14 @@ end
 
 // ----------------------------------------- //
 
-// Cache One Data Comb
-// Handles pulling the data and testing it
-always_comb begin
-	if (reqAddr.tag == cacheOneAddr[reqAddr.idx].tag) begin
-		tagEqualOne = 1;
-	end else begin
-		tagEqualOne = 0;
-	end
-
-	if (cacheOneValid[reqAddr.idx] == 1) begin
-		validOne = 1;
-	end else begin
-		validOne = 0;
-	end
-
-	dataBlockOne = cacheOneData[reqAddr.idx];
-	recentUsedOne = cacheOneRecUsed[reqAddr.idx];
-end
-
-// Cache Two Data Comb
-// Handles pulling the data and testing it
-always_comb begin
-	if (cacheTwoAddr[reqAddr.idx].tag == reqAddr.tag) begin
-		tagEqualTwo = 1;
-	end else begin
-		tagEqualTwo = 0;
-	end
-
-	if (cacheTwoValid[reqAddr.idx] == 1) begin
-		validTwo = 1;
-	end else begin
-		validTwo = 0;
-	end
-
-	dataBlockTwo = cacheTwoData[reqAddr.idx];
-	recentUsedTwo = cacheTwoRecUsed[reqAddr.idx];
-end
-
-// ----------------------------------------- //
-
-assign prehitOne = tagEqualOne && validOne;
-assign prehitTwo = tagEqualTwo && validTwo;
+assign prehitOne = (cacheOne[reqAddr.idx].addr.tag == reqAddr.tag) && (cacheOne[reqAddr.idx].valid == 1);
+assign prehitTwo = (cacheTwo[reqAddr.idx].addr.tag == reqAddr.tag) && (cacheTwo[reqAddr.idx].valid == 1);
 assign prehit = prehitOne || prehitTwo;
 
 // ----------------------------------------- //
 
-cdataOne = (reqAddr.blkoff == 0) ? dataBlockOne.wordA : dataBlockOne.wordB;
-cdataTwo = (reqAddr.blkoff == 0) ? dataBlockTwo.wordA : dataBlockTwo.wordB;
+cdataOne = (reqAddr.blkoff == 0) ? cacheOne[reqAddr.idx].data.wordA : cacheOne[reqAddr.idx].data.wordB;
+cdataTwo = (reqAddr.blkoff == 0) ? cacheTwo[reqAddr.idx].data.wordA : cacheTwo[reqAddr.idx].data.wordB;
 cdata    = (prehitOne == 1) ? cdataOne : cdataTwo; // JANKY BAD TERRIBLE CODE; PLEASE FIX
 
 // ----------------------------------------- //
@@ -193,6 +163,36 @@ always_comb begin
 		3: desination = (recentUsedOne == 1) 0 : 1;
 		default: desination = 0;
 	endcase
+
+	if (desination == 0) begin
+		dirtyAddr = cacheOne[reqAddr.idx].addr;
+		dirtyData = cacheOne[reqAddr.idx].data;
+	end else begin
+		dirtyAddr = cacheTwo[reqAddr.idx].addr;
+		dirtyData = cacheTwo[reqAddr.idx].data;
+	end
+
+	if (desination == 0) && (cacheOne[reqAddr.idx].dirty == 1) begin
+		destinationDirty = 1;
+	end else if (desination == 1) && (cacheTwo[reqAddr.idx].dirty == 1) begin
+		destinationDirty = 1;
+	end else begin
+		destinationDirty = 0;
+	end
+
+end
+
+// ----------------------------------------- //
+
+// Determines correct address to request
+always_comb begin
+	if (reqAddr.blkoff == 0) begin
+		loadAddrA = reqAddr.addr;
+		loadAddrB = reqAddr.addr + 4;
+	end else begin
+		loadAddrA = reqAddr.addr - 4;
+		loadAddrB = reqAddr.addr;
+	end
 end
 
 // ----------------------------------------- //
@@ -226,23 +226,151 @@ always_comb begin
 		updateRead    = 0;
 		updateWrite   = 0;
 
-		if (dcif.dmemREN == 1) begin
-			if (prehit == 1) begin
-				nextState = READHIT;
-			end else begin
-				nextState = MISSCHECK;
-			end
-		end else if (dcif.dmemWEN == 1) begin
-			if (prehit == 1) begin
-				nextState = WRITEHIT;
-			end else begin
-				nextState = MISSCHECK;
-			end
-		end else begin
+		if (dcif.halt == 1) begin
+			nextState = FLUSH;
+
+		end else if (dcif.dmemREN == 0 && dcif.dmemWEN == 0) begin
 			nextState = IDLE;
+
+		end else if (dcif.dmemREN == 1 && prehit == 1) begin
+			// Read Hit;
+			nextState = READHIT;
+
+		end else if (dcif.dmemWEN == 1 && prehit == 1) begin
+			// Write Hit;
+			nextState = WRITEHIT;
+
+		end else if (destinationDirty == 0) begin
+			// Read Miss; Destination is NOT dirty
+			nextState = READREQA;
+
+		end else if (destinationDirty == 1) begin
+			// Read Miss; Destination IS dirty
+			nextState = DIRTYCLEANA;
 		end
 
+	end else if (currState == DIRTYCLEANA) begin
+	// Writes Dirty Data (first word) Back To Memory
+
+		dcif.dhit     = 0;
+		dcif.dmemload = 0;
+		dcif.flushed  = 0;
+
+		cif.dREN      = 0;
+		cif.dWEN      = 1;
+		cif.daddr     = dirtyAddr;
+		cif.dstore    = dirtyData.wordA;
+
+		updateRead    = 0;
+		updateWrite   = 0;
+
+		if (cif.dwait == 1) begin
+			nextState = DIRTYCLEANA;
+		end else begin
+			nextState = DIRTYCLEANB;
+		end
+
+	end else if (currState == DIRTYCLEANB) begin
+	// Writes Dirty Data (second word) Back To Memory
+
+		dcif.dhit     = 0;
+		dcif.dmemload = 0;
+		dcif.flushed  = 0;
+
+		cif.dREN      = 0;
+		cif.dWEN      = 1;
+		cif.daddr     = dirtyAddr + 4;
+		cif.dstore    = dirtyData.wordB;
+
+		updateRead    = 0;
+		updateWrite   = 0;
+
+		if (cif.dwait == 1) begin
+			nextState = DIRTYCLEANB;
+		end else begin
+			nextState = DATAREQA;
+		end
+
+	end else if (currState == DATAREQA) begin
+	// Requests First Block of Data
+
+		dcif.dhit     = 0;
+		dcif.dmemload = 0;
+		dcif.flushed  = 0;
+
+		cif.dREN      = 1;
+		cif.dWEN      = 0;
+		cif.daddr     = loadAddrA;
+		cif.dstore    = 0;
+
+		updateRead    = 0;
+		updateWrite   = 0;
+
+		if (cif.dwait == 1) begin
+			nextState = DATAREQA;
+		end else begin
+			nextState = DATALOADA;
+		end
+
+	end else if (currState == DATALOADA) begin
+	// Loads First Block of Data into Cache
+
+		dcif.dhit     = 0;
+		dcif.dmemload = 0;
+		dcif.flushed  = 0;
+
+		cif.dREN      = 0;
+		cif.dWEN      = 0;
+		cif.daddr     = 0;
+		cif.dstore    = 0;
+
+		updateRead    = 1;
+		updateWrite   = 0;
+
+		nextState = DATAREQB;
+
+	end else if (currState == DATAREQB) begin
+	// Requests Second Block of Data
+
+		dcif.dhit     = 0;
+		dcif.dmemload = 0;
+		dcif.flushed  = 0;
+
+		cif.dREN      = 1;
+		cif.dWEN      = 0;
+		cif.daddr     = loadAddrB;
+		cif.dstore    = 0;
+
+		updateRead    = 0;
+		updateWrite   = 0;
+
+		if (cif.dwait == 1) begin
+			nextState = DATAREQB;
+		end else begin
+			nextState = DATALOADB;
+		end
+
+	end else if (currState == DATALOADB) begin
+	// Loads Second Block of Data into Cache
+
+		dcif.dhit     = 0;
+		dcif.dmemload = 0;
+		dcif.flushed  = 0;
+
+		cif.dREN      = 0;
+		cif.dWEN      = 0;
+		cif.daddr     = 0;
+		cif.dstore    = 0;
+
+		updateRead    = 1;
+
+		updateWrite   = 0;
+
+		nextState = IDLE;
+
 	end else if (currState == READHIT) begin
+	// Returns cached data to user
+
 		dcif.dhit     = 1;
 		dcif.dmemload = cdata;
 		dcif.flushed  = 0;
@@ -257,9 +385,10 @@ always_comb begin
 
 		nextState = IDLE;
 
-	end else if (currState == MISSCHECK) begin
-		// Checks the dirty bit of the soon to be overwritten spot
-		dcif.dhit     = 0;
+	end else if (currState == WRITEHIT) begin
+	// Write user data to cache
+
+		dcif.dhit     = 1;
 		dcif.dmemload = 0;
 		dcif.flushed  = 0;
 
@@ -269,30 +398,10 @@ always_comb begin
 		cif.dstore    = 0;
 
 		updateRead    = 0;
-		updateWrite   = 0;
+		updateWrite   = 1;
 
-		if (desination == 0 && cacheOneDirty[reqAddr.idx] == 1) || (desination == 1 && cacheTwoDirty[reqAddr.idx] == 1) begin 
-			nextState = DIRTYCLEAN;
-		end else
-			nextState = REQDATA;
-		end
+		nextState = IDLE;
 
-	end else if (currState == DIRTYCLEAN) begin
-		// Writes Dirty Data Back To Memory
 
-		dcif.dhit     = 0;
-		dcif.dmemload = 0;
-		dcif.flushed  = 0;
-
-		cif.dREN      = 0;
-		cif.dWEN      = 1;
-		cif.daddr     = 0;
-		cif.dstore    = 0;
-
-		updateRead    = 0;
-		updateWrite   = 0;
-
-	end else if (currState == REQDATA) begin
-
-	end
+	end 
 end
