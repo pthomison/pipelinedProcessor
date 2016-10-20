@@ -143,7 +143,8 @@ word_t expected_dmemload1, expected_dmemload2;
 
 parameter PERIOD = 10;
 initial begin
-
+  dcif.dmemWEN = 0;
+  dcif.dmemREN = 0;
   // Reseting
   #(PERIOD*2);
   nRST = 0;
@@ -153,8 +154,13 @@ initial begin
   expected_dmemload1 = 32'h00000000;
   expected_dmemload2 = 32'h00000000;
 
+  dcif.halt = 0;
+  dcif.dmemWEN = 0;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'h00000000; 
+  dcif.dmemaddr = 32'h00000000;
 
-
+  #(PERIOD);
   // dcif.halt = 0;
   // dcif.dmemWEN = 1;
   // dcif.dmemREN = 0;
@@ -188,13 +194,14 @@ initial begin
   dcif.dmemaddr = 32'h00000100;
 
   expected_dmemload1 = 32'h00000050;
+  expected_dmemload2 = 32'h000000A0;
 
   @(dcif.dhit);
-  #(PERIOD*5)
+  #(PERIOD)
 
   dcif.dmemWEN = 0;
 
-  expected_dmemload1 = 32'h00000000;
+  expected_dmemload1 = 32'h00000000; //cache 1
   expected_dmemload2 = 32'h00000000;
 
 
@@ -208,10 +215,11 @@ initial begin
   dcif.dmemstore = 32'h000000DC; //dc
   dcif.dmemaddr = 32'h0000A004;
 
-  expected_dmemload1 = 32'h00000002;
+  expected_dmemload1 = 32'h00000002; //cache 2
+  expected_dmemload2 = 32'h00000001;
 
   @(dcif.dhit);
-  #(PERIOD*5)
+  #(PERIOD)
 
   dcif.dmemWEN = 0;
 
@@ -228,6 +236,7 @@ initial begin
   dcif.dmemaddr = 32'h00000104;
 
   expected_dmemload1 = 32'h000000A0;
+  expected_dmemload2 = 32'h00000050;
 
 
   @(dcif.dhit);
@@ -247,6 +256,7 @@ initial begin
   dcif.dmemaddr = 32'h0000A000;
 
   expected_dmemload1 = 32'h00000001;
+  expected_dmemload2 = 32'h00000002;
 
   @(dcif.dhit);
   #(PERIOD)
@@ -262,6 +272,7 @@ initial begin
 
   //
   // write miss
+  // cache1
   //
   dcif.halt = 0;
   dcif.dmemWEN = 1;
@@ -270,16 +281,19 @@ initial begin
   dcif.dmemaddr = 32'h0000B000;
 
   expected_dmemload1 = 32'h00BEEF00;
+  expected_dmemload2 = 32'h0000000B;
   @(dcif.dhit);
   dcif.dmemWEN = 0;
   #(PERIOD);
   expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
 
 
 
   //
   // write hit
   // cache1
+  // make dirty
   //
   dcif.halt = 0;
   dcif.dmemWEN = 1;
@@ -302,7 +316,7 @@ initial begin
   // read miss
   // at this point, recUsed is 0, means cache 1 used recently
   // want to load data into cache 2 = destination is 1
-  // which is CLEAN
+  // which is DIRTY
   //
   dcif.halt = 0;
   dcif.dmemWEN = 0;
