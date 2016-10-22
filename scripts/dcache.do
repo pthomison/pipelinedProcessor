@@ -6,6 +6,8 @@ add wave -noupdate /dcache_tb/nRST
 add wave -noupdate /dcache_tb/DUT/dcif/dhit
 add wave -noupdate /dcache_tb/PROG/dcif/dmemload
 add wave -noupdate /dcache_tb/PROG/expected_dmemload1
+add wave -noupdate /dcache_tb/PROG/expected_dmemload2
+add wave -noupdate /dcache_tb/PROG/expected_cache
 add wave -noupdate -group MemoryC /dcache_tb/DUTMEM/ccif/iwait
 add wave -noupdate -group MemoryC /dcache_tb/DUTMEM/ccif/dwait
 add wave -noupdate -group MemoryC /dcache_tb/DUTMEM/ccif/iREN

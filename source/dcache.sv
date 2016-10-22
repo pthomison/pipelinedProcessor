@@ -66,8 +66,8 @@ DIRTYCLEANA  = 4'h4,
 DIRTYCLEANB  = 4'h5,
 DATAREQA     = 4'h6,
 DATAREQB     = 4'h7,
-XXX    = 4'h8, 
-XXXX    = 4'h9,
+XXX    		 = 4'h8, 
+XXXX         = 4'h9,
 FLUSH        = 4'hA,
 STOP         = 4'hB
 } controllerState;
@@ -222,11 +222,11 @@ always_comb begin
 	if (dcif.dmemWEN) begin
 		//if dmemWEN high, then dont overwrite the other loadAddr
 		if (reqAddr.blkoff == 0) begin
-			loadAddrA = reqAddr +4;
+			loadAddrA = reqAddr;
 			loadAddrB = reqAddr +4;
 		end else begin
 			loadAddrA = reqAddr - 4;
-			loadAddrB = reqAddr - 4;
+			loadAddrB = reqAddr;
 		end
 	end else begin
 		if (reqAddr.blkoff == 0) begin
