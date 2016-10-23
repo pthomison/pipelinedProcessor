@@ -391,6 +391,259 @@ initial begin
 
 
 
+
+
+
+
+  // Getting ready for halt
+  // Making 4 dirty
+  $display("  Pre-Halt testcases");
+
+  //
+  // write miss
+  // cache 1 (I think)
+  // 1
+  testcase = 8;
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'hABCD0000;
+  dcif.dmemaddr = 32'h0000FA54;
+
+  expected_cache = 1;
+  expected_dmemload1 = 32'hABCD0000;
+  expected_dmemload2 = 32'h00000002;
+  
+  @(dcif.dhit);
+  dcif.dmemWEN = 0;
+
+  if (expected_dmemload1 == dcif.dmemload) begin
+    $display("Design correctly requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY requested memory on a write miss");
+  end
+
+  #(PERIOD)
+
+  expected_cache = 0;
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
+
+  //
+  // write miss
+  // cache 2
+  // 2
+  testcase = 9;
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'hABCD0000;
+  dcif.dmemaddr = 32'h0000EA56;
+
+  expected_cache = 2;
+  expected_dmemload1 = 32'hABCD0000;
+  expected_dmemload2 = 32'h00000001;
+  
+  @(dcif.dhit);
+  dcif.dmemWEN = 0;
+
+  if (expected_dmemload1 == dcif.dmemload) begin
+    $display("Design correctly requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY requested memory on a write miss");
+  end
+
+  #(PERIOD)
+
+  expected_cache = 0;
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
+
+  //
+  // write miss
+  // cache 1
+  // 3
+  testcase = 10;
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'hABCD0000;
+  dcif.dmemaddr = 32'h0000FA58;
+
+  expected_cache = 1;
+  expected_dmemload1 = 32'hABCD0000;
+  expected_dmemload2 = 32'h00000004;
+  
+  @(dcif.dhit);
+  dcif.dmemWEN = 0;
+
+  if (expected_dmemload1 == dcif.dmemload) begin
+    $display("Design correctly requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY requested memory on a write miss");
+  end
+
+  #(PERIOD)
+
+  expected_cache = 0;
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
+
+  //
+  // write miss
+  // cache 2
+  // 4
+  testcase = 11;
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'hABCD0000;
+  dcif.dmemaddr = 32'h0000EA5A;
+
+  expected_cache = 2;
+  expected_dmemload1 = 32'hABCD0000;
+  expected_dmemload2 = 32'h00000003;
+  
+  @(dcif.dhit);
+  dcif.dmemWEN = 0;
+
+  if (expected_dmemload1 == dcif.dmemload) begin
+    $display("Design correctly requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY requested memory on a write miss");
+  end
+
+  #(PERIOD)
+
+  expected_cache = 0;
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
+
+  //
+  // write miss
+  // cache 1
+  // 5
+  testcase = 12;
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'hABCD0000;
+  dcif.dmemaddr = 32'h0000FA5C;
+
+  expected_cache = 1;
+  expected_dmemload1 = 32'hABCD0000;
+  expected_dmemload2 = 32'h00000006;
+  
+  @(dcif.dhit);
+  dcif.dmemWEN = 0;
+
+  if (expected_dmemload1 == dcif.dmemload) begin
+    $display("Design correctly requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY requested memory on a write miss");
+  end
+
+  #(PERIOD)
+
+  expected_cache = 0;
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
+
+  //
+  // write miss
+  // cache 2
+  // 6
+  testcase = 12;
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'hABCD0000;
+  dcif.dmemaddr = 32'h0000EA5D;
+
+  expected_cache = 2;
+  expected_dmemload1 = 32'hABCD0000;
+  expected_dmemload2 = 32'h00000005;
+  
+  @(dcif.dhit);
+  dcif.dmemWEN = 0;
+
+  if (expected_dmemload1 == dcif.dmemload) begin
+    $display("Design correctly requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY requested memory on a write miss");
+  end
+
+  #(PERIOD)
+
+  expected_cache = 0;
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
+
+  //
+  // write miss
+  // cache 1
+  // 7
+  testcase = 12;
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'hABCD0000;
+  dcif.dmemaddr = 32'h0000FA5E;
+
+  expected_cache = 1;
+  expected_dmemload1 = 32'hABCD0000;
+  expected_dmemload2 = 32'h00000008;
+  
+  @(dcif.dhit);
+  dcif.dmemWEN = 0;
+
+  if (expected_dmemload1 == dcif.dmemload) begin
+    $display("Design correctly requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY requested memory on a write miss");
+  end
+
+  #(PERIOD)
+
+  expected_cache = 0;
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
+
+  //
+  // write miss
+  // cache 2
+  // 8
+  testcase = 12;
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'hABCD0000;
+  dcif.dmemaddr = 32'h0000EA5F;
+
+  expected_cache = 2;
+  expected_dmemload1 = 32'hABCD0000;
+  expected_dmemload2 = 32'h00000007;
+  
+  @(dcif.dhit);
+  dcif.dmemWEN = 0;
+
+  if (expected_dmemload1 == dcif.dmemload) begin
+    $display("Design correctly requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY requested memory on a write miss");
+  end
+
+  #(PERIOD)
+
+  expected_cache = 0;
+  expected_dmemload1 = 32'h00000000;
+  expected_dmemload2 = 32'h00000000;
+
+
+
+
+
+  $display("  Halt - Flush Begins");
   //
   // halt
   //
@@ -399,7 +652,7 @@ initial begin
   dcif.dmemWEN = 0;
   dcif.dmemREN = 0;
   dcif.dmemstore = 32'h000000DC; //dc
-  dcif.dmemaddr = 32'h0000C000; //dc
+  dcif.dmemaddr = 32'h000000DC; //dc
 
   expected_dmemload1 = 32'h00000000;
 
@@ -409,19 +662,7 @@ initial begin
 
   expected_dmemload1 = 32'h00000000;
 
-
-
-
-
-
-
-
-  
-  #(PERIOD);
-
-  #(PERIOD);
-
-  #(PERIOD*10);
+  #(PERIOD*100);
 
   //dump_memory();
 

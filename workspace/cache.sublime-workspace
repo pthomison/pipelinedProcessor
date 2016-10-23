@@ -4,8 +4,16 @@
 		"selected_items":
 		[
 			[
+				"FLUSH",
+				"FLUSHDIRTYA"
+			],
+			[
+				"word",
+				"wordA"
+			],
+			[
 				"d",
-				"dhit	Field"
+				"daddr"
 			],
 			[
 				"DATA",
@@ -107,7 +115,7 @@
 			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/source/dcache.sv",
 			"settings":
 			{
-				"buffer_size": 11153,
+				"buffer_size": 11980,
 				"line_ending": "Unix"
 			}
 		},
@@ -115,7 +123,7 @@
 			"file": "/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench/dcache_tb.sv",
 			"settings":
 			{
-				"buffer_size": 6542,
+				"buffer_size": 7368,
 				"line_ending": "Unix"
 			}
 		},
@@ -190,7 +198,8 @@
 	"expanded_folders":
 	[
 		"/home/ecegrid/a/mg233/repos/pipelinedProcessor",
-		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles"
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/asmFiles",
+		"/home/ecegrid/a/mg233/repos/pipelinedProcessor/testbench"
 	],
 	"file_history":
 	[
@@ -258,6 +267,14 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"updatew",
+			"datareq",
+			"datare",
+			"dirtyad",
+			"destina",
+			"flushiter",
+			"dirt",
+			"hitcount",
 			"flush",
 			"dmemw",
 			"recu",
@@ -322,6 +339,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"iter",
 			"portb_temp",
 			"itype",
 			"FORWARD",
@@ -404,7 +422,7 @@
 						"translation.y": 319.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
@@ -472,15 +490,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 11153,
+						"buffer_size": 11980,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								10472,
-								10472
+								1849,
+								1849
 							]
 						],
 						"settings":
@@ -489,16 +507,16 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 7540.0,
+						"translation.y": 1238.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 3,
 					"type": "text"
 				}
 			]
 		},
 		{
-			"selected": 0,
+			"selected": 4,
 			"sheets":
 			[
 				{
@@ -507,15 +525,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6542,
+						"buffer_size": 7368,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5696,
-								5696
+								6238,
+								6238
 							]
 						],
 						"settings":
@@ -525,10 +543,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 5110.0,
+						"translation.y": 5476.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -544,8 +562,8 @@
 						"selection":
 						[
 							[
-								140,
-								140
+								104,
+								104
 							]
 						],
 						"settings":
@@ -616,7 +634,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
@@ -632,8 +650,8 @@
 						"selection":
 						[
 							[
-								3287,
-								3287
+								2838,
+								2838
 							]
 						],
 						"settings":
@@ -643,10 +661,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 972.0,
+						"translation.y": 2268.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
@@ -680,7 +698,7 @@
 		"cols":
 		[
 			0.0,
-			0.517199017199,
+			0.568907991074,
 			1.0
 		],
 		"rows":
@@ -698,7 +716,7 @@
 	"project": "cache.sublime-project",
 	"replace":
 	{
-		"height": 48.0
+		"height": 64.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -736,7 +754,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 292.0,
+	"side_bar_width": 152.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
