@@ -59,7 +59,7 @@ interface datapath_cache_if;
 
   modport tb (
     input  ihit, dhit, imemload, dmemload, flushed,
-    output halt, imemREN, dmemREN, dmemWEN, datomic,
+    output halt, imemREN, dmemREN, dmemWEN,
            dmemstore, dmemaddr, imemaddr
   );
 endinterface

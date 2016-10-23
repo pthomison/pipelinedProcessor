@@ -6,8 +6,6 @@ add wave -noupdate /dcache_tb/CLK
 add wave -noupdate /dcache_tb/nRST
 add wave -noupdate /dcache_tb/DUT/dcif/dhit
 add wave -noupdate /dcache_tb/PROG/dcif/dmemload
-add wave -noupdate /dcache_tb/PROG/expected_dmemload1
-add wave -noupdate /dcache_tb/PROG/expected_dmemload2
 add wave -noupdate /dcache_tb/PROG/expected_cache
 add wave -noupdate -group MemoryC /dcache_tb/DUTMEM/ccif/iwait
 add wave -noupdate -group MemoryC /dcache_tb/DUTMEM/ccif/dwait
@@ -81,17 +79,15 @@ add wave -noupdate -group InternalDCache /dcache_tb/DUT/dirtyData
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/dirtyAddr
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/destinationDirty
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/destination
-add wave -noupdate -group InternalDCache /dcache_tb/DUT/destCurrAddr
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/currState
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/cdataTwo
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/cdataOne
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/cdata
-add wave -noupdate -group InternalDCache /dcache_tb/DUT/iter
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/dcif/dhit
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/cacheTwo
 add wave -noupdate -group InternalDCache -expand -subitemconfig {{/dcache_tb/DUT/cacheOne[0]} -expand {/dcache_tb/DUT/cacheOne[0].data} -expand} /dcache_tb/DUT/cacheOne
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {171372 ps} 0}
+WaveRestoreCursors {{Cursor 1} {280450 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 168
 configure wave -valuecolwidth 100
@@ -107,4 +103,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {708750 ps}
+WaveRestoreZoom {0 ps} {1181250 ps}

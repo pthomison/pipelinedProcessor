@@ -1,5 +1,5 @@
 
-org 0x0100
+org 0x00000100
 cfw 80
 cfw 160
 cfw 240
