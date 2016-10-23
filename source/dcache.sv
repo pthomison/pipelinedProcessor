@@ -48,7 +48,7 @@ logic destinationDirty;
 
 logic prehitOne, prehitTwo, prehit;
 logic validOne, validTwo;
-logic worddest;
+logic wordDestRead, wordDestWrite;
 
 word_t cdataOne, cdataTwo, cdata;
 
@@ -66,7 +66,7 @@ DIRTYCLEANA  = 4'h4,
 DIRTYCLEANB  = 4'h5,
 DATAREQA     = 4'h6,
 DATAREQB     = 4'h7,
-XXX    		 = 4'h8, 
+OVERWRITE    = 4'h8, 
 XXXX         = 4'h9,
 FLUSH        = 4'hA,
 STOP         = 4'hB
@@ -76,7 +76,13 @@ controllerState currState;
 controllerState nextState;
 
 // Type Casting To ICache Address
-assign reqAddr = icachef_t'(dcif.dmemaddr);
+always_comb begin
+	if (dcif.halt == 0) begin
+		reqAddr = icachef_t'(dcif.dmemaddr);
+	end else begin
+
+	end
+end
 
 // Connecting mem data
 assign mload   = cif.dload;
@@ -98,7 +104,7 @@ always_ff @(posedge CLK, negedge nRST) begin
 				cacheOne[reqAddr.idx].dirty       <= 0;
 				recUsed[reqAddr.idx]              <= 0;
 
-				if (worddest == 0) begin
+				if (wordDestRead == 0) begin
 					cacheOne[reqAddr.idx].data.wordA <= mload;
 				end else begin
 					cacheOne[reqAddr.idx].data.wordB <= mload;
@@ -113,7 +119,7 @@ always_ff @(posedge CLK, negedge nRST) begin
 				cacheOne[reqAddr.idx].valid       <= 1;
 				cacheOne[reqAddr.idx].dirty       <= 1;
 
-				if (worddest == 0) begin
+				if (wordDestWrite == 0) begin
 					cacheOne[reqAddr.idx].data.wordA <= mstore;
 				end else begin
 					cacheOne[reqAddr.idx].data.wordB <= mstore;
@@ -139,7 +145,7 @@ always_ff @(posedge CLK, negedge nRST) begin
 				cacheTwo[reqAddr.idx].dirty       <= 0;
 				recUsed[reqAddr.idx]              <= 1;
 
-				if (worddest == 0) begin
+				if (wordDestRead == 0) begin
 					cacheTwo[reqAddr.idx].data.wordA <= mload;
 				end else begin
 					cacheTwo[reqAddr.idx].data.wordB <= mload;
@@ -154,7 +160,7 @@ always_ff @(posedge CLK, negedge nRST) begin
 				cacheTwo[reqAddr.idx].valid       <= 1;
 				cacheTwo[reqAddr.idx].dirty       <= 1;
 
-				if (worddest == 0) begin
+				if (wordDestWrite == 0) begin
 					cacheTwo[reqAddr.idx].data.wordA <= mstore;
 				end else begin
 					cacheTwo[reqAddr.idx].data.wordB <= mstore;
@@ -185,7 +191,7 @@ assign cdata    = (prehitOne == 1) ? cdataOne : cdataTwo; // JANKY BAD TERRIBLE 
 
 // destination selector block
 always_comb begin
-	if (currState == IDLE) begin 
+	if (currState == READHIT || currState == WRITEHIT) begin 
 		//only change in IDLE state
 
 		casez({validOne, validTwo})
@@ -195,6 +201,8 @@ always_comb begin
 			3: destination = (recUsed[reqAddr.idx] == 1) ? 0 : 1;
 			default: destination = 0;
 		endcase
+	end else begin
+		destination = 0;
 	end
 
 	if (destination == 0) begin
@@ -219,24 +227,29 @@ end
 
 // Determines correct address to request
 always_comb begin
-	if (dcif.dmemWEN) begin
-		//if dmemWEN high, then dont overwrite the other loadAddr
-		if (reqAddr.blkoff == 0) begin
-			loadAddrA = reqAddr;
-			loadAddrB = reqAddr +4;
-		end else begin
-			loadAddrA = reqAddr - 4;
-			loadAddrB = reqAddr;
-		end
+
+	if (reqAddr.blkoff == 0) begin
+		loadAddrA = reqAddr;
+		loadAddrB = reqAddr + 4;
+		wordDestWrite = 0;
 	end else begin
-		if (reqAddr.blkoff == 0) begin
-			loadAddrA = reqAddr;
-			loadAddrB = reqAddr + 4;
-		end else begin
-			loadAddrA = reqAddr - 4;
-			loadAddrB = reqAddr;
-		end
+		loadAddrA = reqAddr - 4;
+		loadAddrB = reqAddr;
+		wordDestWrite = 1;
 	end
+
+	// if (dcif.dmemWEN) begin
+	// 	//if dmemWEN high, then dont overwrite the other loadAddr
+
+	// end else begin
+	// 	if (reqAddr.blkoff == 0) begin
+	// 		loadAddrA = reqAddr;
+	// 		loadAddrB = reqAddr + 4;
+	// 	end else begin
+	// 		loadAddrA = reqAddr - 4;
+	// 		loadAddrB = reqAddr;
+	// 	end
+	// end
 end
 
 // ----------------------------------------- //
@@ -259,6 +272,7 @@ end
 // RAM Control Signals: cif.dREN, cif.dWEN, cif.daddr, cif.dstore,
 // Internal Control Signals: updateRead, updateWrite
 always_comb begin
+
 	if (!nRST) begin
 		hitcounter = 0;
 		cif.dWEN  <= 0;
@@ -270,7 +284,7 @@ always_comb begin
 		dcif.dhit     = 0;
 		dcif.dmemload = 0;
 		dcif.flushed  = 0;
-		worddest = 0;
+		wordDestRead  = 0;
 
 		//It helps to actually assign validOne and Two to something PATRICK
 		//Only want to update valids in IDLE state
@@ -302,14 +316,14 @@ always_comb begin
 		end else if (dcif.dmemWEN == 1 && prehit == 1) begin
 			// Write Hit;
 			hitcounter = hitcounter +1;
-			nextState = WRITEHIT;
+			nextState = OVERWRITE;
 
 		end else if (destinationDirty == 0) begin
-			// Read Miss; Destination is NOT dirty
+			// Any Miss; Destination is NOT dirty
 			nextState = DATAREQA;
 
 		end else if (destinationDirty == 1) begin
-			// Read Miss; Destination IS dirty
+			// Any Miss; Destination IS dirty
 			nextState = DIRTYCLEANA;
 		end
 
@@ -319,7 +333,7 @@ always_comb begin
 		dcif.dhit     = 0;
 		dcif.dmemload = 0;
 		dcif.flushed  = 0;
-		worddest = 0;
+		wordDestRead  = 0;
 
 		cif.dREN      = 0;
 		cif.dWEN      = 1;
@@ -341,7 +355,7 @@ always_comb begin
 		dcif.dhit     = 0;
 		dcif.dmemload = 0;
 		dcif.flushed  = 0;
-		worddest      = 0;
+		wordDestRead  = 0;
 
 		cif.dREN      = 0;
 		cif.dWEN      = 1;
@@ -353,6 +367,8 @@ always_comb begin
 
 		if (cif.dwait == 1) begin
 			nextState = DIRTYCLEANB;
+		end else if (dcif.halt == 1) begin
+			nextState = FLUSH;
 		end else begin
 			nextState = DATAREQA;
 		end
@@ -363,7 +379,7 @@ always_comb begin
 		dcif.dhit     = 0;
 		dcif.dmemload = 0;
 		dcif.flushed  = 0;
-		worddest      = 0;
+		wordDestRead  = 0;
 
 		cif.dREN      = 1;
 		cif.dWEN      = 0;
@@ -371,17 +387,17 @@ always_comb begin
 		cif.dstore    = 0;
 
 		//this right here needs work
-		if (dcif.dmemWEN == 1) begin
-			updateRead    = 0;
-			updateWrite   = 1;
-		end else begin
-			updateRead    = 1;
-			updateWrite   = 0;
-		end
+		// if (dcif.dmemWEN == 1) begin
+		// 	updateRead    = 0;
+		// 	updateWrite   = 1;
+		// end else begin
+		// 	updateRead    = 1;
+		// 	updateWrite   = 0;
+		// end
 
 
-		//updateRead    = 1;
-		//updateWrite   = 0;
+		updateRead    = 1;
+		updateWrite   = 0;
 
 		if (cif.dwait == 1) begin
 			nextState = DATAREQA;
@@ -395,30 +411,48 @@ always_comb begin
 		dcif.dhit     = 0;
 		dcif.dmemload = 0;
 		dcif.flushed  = 0;
-		worddest      = 1;
+		wordDestRead  = 1;
+		
 
 		cif.dREN      = 1;
 		cif.dWEN      = 0;
 		cif.daddr     = loadAddrB;
 		cif.dstore    = 0;
 
-		if (dcif.dmemWEN == 1) begin
-			updateRead    = 0;
-			updateWrite   = 1;
-		end else begin
-			updateRead    = 1;
-			updateWrite   = 0;
-		end
+		// if (dcif.dmemWEN == 1) begin
+		// 	updateRead    = 0;
+		// 	updateWrite   = 1;
+		// end else begin
+		// 	updateRead    = 1;
+		// 	updateWrite   = 0;
+		// end
 
 
-		//updateRead    = 1;
-		//updateWrite   = 0;
+		updateRead    = 1;
+		updateWrite   = 0;
 
 		if (cif.dwait == 1) begin
 			nextState = DATAREQB;
+		end else if (dcif.dmemWEN == 1) begin
+			nextState = OVERWRITE;
 		end else begin
 			nextState = IDLE;
 		end
+
+	end else if (currState == OVERWRITE) begin	
+		dcif.dhit     = 0;
+		dcif.dmemload = 0;
+		dcif.flushed  = 0;
+		wordDestRead  = 1;
+
+		cif.dREN      = 0;
+		cif.dWEN      = 0;
+		cif.daddr     = 0;
+		cif.dstore    = 0;
+		updateRead    = 0;
+		updateWrite   = 1;
+
+		nextState = WRITEHIT;
 
 	end else if (currState == READHIT) begin
 	// Returns cached data to user
@@ -426,7 +460,7 @@ always_comb begin
 		dcif.dhit     = 1;
 		dcif.dmemload = cdata;
 		dcif.flushed  = 0;
-		worddest      = 0;
+		wordDestRead  = 0;
 
 		cif.dREN      = 0;
 		cif.dWEN      = 0;
@@ -446,7 +480,7 @@ always_comb begin
 		dcif.dhit     = 1;
 		dcif.dmemload = mstore;
 		dcif.flushed  = 0;
-		worddest      = 0;
+		wordDestRead  = 0;
 
 		cif.dREN      = 0;
 		cif.dWEN      = 0;
@@ -466,7 +500,7 @@ always_comb begin
 		dcif.dhit     = 0;
 		dcif.dmemload = 0;
 		dcif.flushed  = 0;
-		worddest      = 0;
+		wordDestRead  = 0;
 
 		cif.dREN      = 0;
 		cif.dWEN      = 0;
@@ -476,47 +510,45 @@ always_comb begin
 		updateRead    = 0;
 		updateWrite   = 0;
 
-		for (iter = 0; iter < 16; iter = iter + 1) begin
-			if (iter[3] == 1) begin
-				//cache one
-				if (cacheOne[iter[2:0]].dirty) begin
+		if (cacheOne[0].dirty == 1) begin
 
-					cif.dWEN      = 1;
-					cif.daddr     = cacheOne[iter[2:0]].addr;
-					cif.dstore    = cacheOne[iter[2:0]].data.wordA;
-
-					while (cif.dwait) begin
-						cif.dWEN      = 1;
-						cif.daddr     = cacheOne[iter[2:0]].addr;
-						cif.dstore    = cacheOne[iter[2:0]].data.wordA;
-					end
-
-					cif.dWEN      = 1;
-					cif.daddr     = cacheOne[iter[2:0]].addr;
-					cif.dstore    = cacheOne[iter[2:0]].data.wordB;
-
-					while (cif.dwait) begin
-						cif.dWEN      = 1;
-						cif.daddr     = cacheOne[iter[2:0]].addr;
-						cif.dstore    = cacheOne[iter[2:0]].data.wordB;
-					end
-
-				end
-			end else begin
-				//cache two
-				if (cacheTwo[iter[2:0]].dirty) begin
-					//nextState = FLUSHDIRTYA
-				end
-			end
 		end
 
-	nextState = STOP;
+		// for (iter = 0; iter < 16; iter = iter + 1) begin
+		// 	if (iter[3] == 1) begin
+		// 		//cache one
+		// 		if (cacheOne[iter[2:0]].dirty) begin
 
+		// 			cif.dWEN      = 1;
+		// 			cif.daddr     = cacheOne[iter[2:0]].addr;
+		// 			cif.dstore    = cacheOne[iter[2:0]].data.wordA;
 
+		// 			while (cif.dwait) begin
+		// 				cif.dWEN      = 1;
+		// 				cif.daddr     = cacheOne[iter[2:0]].addr;
+		// 				cif.dstore    = cacheOne[iter[2:0]].data.wordA;
+		// 			end
 
+		// 			cif.dWEN      = 1;
+		// 			cif.daddr     = cacheOne[iter[2:0]].addr;
+		// 			cif.dstore    = cacheOne[iter[2:0]].data.wordB;
 
+		// 			while (cif.dwait) begin
+		// 				cif.dWEN      = 1;
+		// 				cif.daddr     = cacheOne[iter[2:0]].addr;
+		// 				cif.dstore    = cacheOne[iter[2:0]].data.wordB;
+		// 			end
 
+		// 		end
+		// 	end else begin
+		// 		//cache two
+		// 		if (cacheTwo[iter[2:0]].dirty) begin
+		// 			//nextState = FLUSHDIRTYA
+		// 		end
+		// 	end
+		// end
 
+		nextState = STOP;
 
 	end else if (currState == STOP) begin
 	// Stop
@@ -524,7 +556,7 @@ always_comb begin
 		dcif.dhit     = 0;
 		dcif.dmemload = 0;
 		dcif.flushed  = 1;
-		worddest      = 0;
+		wordDestRead  = 0;
 
 		cif.dREN      = 0;
 		cif.dWEN      = 0;

@@ -1,5 +1,6 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
+add wave -noupdate /dcache_tb/PROG/testcase
 add wave -noupdate /dcache_tb/DUT/hitcounter
 add wave -noupdate /dcache_tb/CLK
 add wave -noupdate /dcache_tb/nRST
@@ -85,13 +86,12 @@ add wave -noupdate -group InternalDCache /dcache_tb/DUT/currState
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/cdataTwo
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/cdataOne
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/cdata
-add wave -noupdate -group InternalDCache /dcache_tb/DUT/worddest
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/iter
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/dcif/dhit
 add wave -noupdate -group InternalDCache /dcache_tb/DUT/cacheTwo
 add wave -noupdate -group InternalDCache -expand -subitemconfig {{/dcache_tb/DUT/cacheOne[0]} -expand {/dcache_tb/DUT/cacheOne[0].data} -expand} /dcache_tb/DUT/cacheOne
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {97575 ps} 0}
+WaveRestoreCursors {{Cursor 1} {171372 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 168
 configure wave -valuecolwidth 100
@@ -107,4 +107,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {698250 ps}
+WaveRestoreZoom {0 ps} {708750 ps}
