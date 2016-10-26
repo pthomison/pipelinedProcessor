@@ -18,9 +18,7 @@ module pc (
 	always_ff @(posedge CLK, negedge nRST) begin
 		if (!nRST) begin
 			pcif.pcout = '0;
-		end
-
-		else if (pcif.pcenable) begin
+		end else if (pcif.pcenable) begin
 			pcif.pcout = pcnext;
 		end
 	end
@@ -46,20 +44,21 @@ module pc (
 
 		else if (pcif.pcsrc == 2'b10) begin
 			if (pcif.BEQ) begin
+
 				if (pcif.branch && pcif.zero_f) begin
 					pcnext = (pcif.immedEXT << 2) + pcif.branch_pc4;
-				end
-				else begin
+				end else begin
 					pcnext = PCplus4;
 				end
-			end
-			else begin
+
+			end else begin
+
 				if (pcif.branch && !pcif.zero_f) begin
-					pcnext = (pcif.immedEXT << 2) + pcif.branch_pc4; //CRAZY CRAZY CRAZY this is so broken 
-				end
-				else begin
+					pcnext = (pcif.immedEXT << 2) + pcif.branch_pc4;
+				end else begin
 					pcnext = PCplus4;
 				end
+				
 			end
 		end
 

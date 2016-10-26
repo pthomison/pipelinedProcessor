@@ -47,8 +47,8 @@ always_comb begin
 
 	//defaults
 	ccif.ramaddr = ccif.daddr;
-	ccif.ramREN = 1;
-	ccif.ramWEN = 1;
+	ccif.ramREN = 0;
+	ccif.ramWEN = 0;
 	ccif.dwait = 1;
 	ccif.iwait = 1;
 	ccif.ramstore = ccif.dstore;

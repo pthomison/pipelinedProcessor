@@ -1,10 +1,9 @@
-
 ORI $29, $0, 0xFFFC
 
 #First number in $10, second in $11, final answer in $12
 
 ORI $3, $0, 0x02
-ORI $4, $0, 0x06
+ORI $4, $0, 0x02
 PUSH $3
 PUSH $4
 JAL mult

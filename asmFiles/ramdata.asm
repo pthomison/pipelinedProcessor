@@ -1,3 +1,4 @@
+halt
 
 org 0x00000100
 cfw 80
@@ -6,21 +7,24 @@ cfw 240
 cfw 320
 cfw 400
 
-org 0xa000
+org 0x0000a000
 cfw 1
 cfw 2
 cfw 3
 cfw 4
 
-org 0xB000
+org 0x0000B000
 cfw 10
 cfw 11
 
-org 0xC000
-cfw 12
-cfw 13
+org 0x0000C000
+cfw 0x050
+cfw 0x100
+cfw 0x150
+cfw 0x200
 
-org 0xEA54
+
+org 0x0000EA54
 cfw 1	#EA54
 cfw 2	#EA56
 cfw 3	#EA58
@@ -34,7 +38,7 @@ cfw 10
 cfw 11
 cfw 12
 
-org 0xFA54
+org 0x0000FA54
 cfw 1	#FA54
 cfw 2	#FA56
 cfw 3	#FA58

@@ -8,156 +8,150 @@ Emily Fredette
 datapath for pipeline
 */
 
-// data path interface
-`include "datapath_cache_if.vh"
+// Imports
+// ----------------------------------------- //
+	// data path interface
+	`include "datapath_cache_if.vh"
 
-// alu op, mips op, and instruction type
-`include "cpu_types_pkg.vh"
+	// alu op, mips op, and instruction type
+	`include "cpu_types_pkg.vh"
 
-`include "pc_if.vh"
-`include "register_file_if.vh"
-`include "control_unit_if.vh"
-`include "request_unit_if.vh"
-`include "alu_file_if.vh"
-`include "pipeline_register_if.vh"
-`include "hazard_unit_if.vh"
+	`include "pc_if.vh"
+	`include "register_file_if.vh"
+	`include "control_unit_if.vh"
+	`include "request_unit_if.vh"
+	`include "alu_file_if.vh"
+	`include "pipeline_register_if.vh"
+	`include "hazard_unit_if.vh"
 
-module datapath (
-  input logic CLK, nRST,
-  datapath_cache_if.dp dpif
-);
-  // import types
-  import cpu_types_pkg::*;
+// Module Declaration
+// ----------------------------------------- //
+	module datapath (
+	  input logic CLK, nRST,
+	  datapath_cache_if.dp dpif
+	);
+	  // import types
+	  import cpu_types_pkg::*;
 
+// Module Init
+// ----------------------------------------- //
   // pc init
   parameter PC_INIT = 0;
 
-
-	//Other Signals
-	word_t immedEXT;
-	word_t PCplus4;
-	logic temphalt;
-
-	//interfaces
+// Child Module Instantiation
+// ----------------------------------------- //
+	// Program Counter
   	pc_if pcif();
-  	request_unit_if ruif();
-  	control_unit_if cuif();
-  	register_file_if rfif();
-  	alu_file_if aluif();
-  	hazard_unit_if huif();
-  	forward_unit_if fuif();
+	pc PC(CLK, nRST, pcif.pc);
 
-	//Function Blocks
-  	pc PC(CLK, nRST, pcif.pc);
-  	request_unit RU(CLK, nRST, ruif.ru);
+	// Control Unit
+  	control_unit_if cuif();
   	control_unit CU(cuif.cu);
+
+  	// Register File
+  	register_file_if rfif();
   	register_file RF(!CLK, nRST, rfif.rf);
+
+  	// Hazard Unit
+  	hazard_unit_if huif();
+  	hazard_unit HU(CLK, huif.hu);
+
+  	// Forwarding Unit
+  	forward_unit_if fuif();
+  	forward_unit FU(fuif.fu);
+
+  	// ALU 
+  	alu_file_if aluif();
 	alu_file ALU(aluif.af);
 
 	// Pipeline Registers
 	pipeline_register_if ifid_plif ();
-	pipeline_register_if idex_plif ();
-	pipeline_register_if exm_plif ();
-	pipeline_register_if mwb_plif ();
-
 	pipeline_register IFID(CLK, nRST, ifid_plif.pr);
+
+	pipeline_register_if idex_plif ();
 	pipeline_register IDEX(CLK, nRST, idex_plif.pr);
+
+	pipeline_register_if exm_plif ();
 	pipeline_register EXM(CLK, nRST, exm_plif.pr);
+
+	pipeline_register_if mwb_plif ();
 	pipeline_register MWB(CLK, nRST, mwb_plif.pr);
 
-	//Hazard and Forwarding Unit
-	hazard_unit HU(CLK, huif.hu);
-	forward_unit FU(fuif.fu);
-
-	//
-	// Forwarding Unit
-	//
-	assign fuif.exm_WEN     = exm_plif.WEN_out;
-	assign fuif.idex_rt_out = idex_plif.rt_out;
-	assign fuif.idex_rs_out = idex_plif.rs_out;
-	assign fuif.mwb_WEN     = mwb_plif.WEN_out;
-	assign fuif.exm_itype_out = exm_plif.itype_out;
-	assign fuif.mwb_itype_out = mwb_plif.itype_out;
-
-	assign fuif.mwb_wsel_out = mwb_plif.wsel_out;
-	assign fuif.exm_wsel_out = exm_plif.wsel_out;
-
-	//
-	// Hazard Unit
-	//
-	assign huif.idex_dren_out = idex_plif.dREN_out;
-	assign huif.idex_rt_out   = idex_plif.rt_out;
-	assign huif.ifid_rs_out   = ifid_plif.rs_out;
-	assign huif.ifid_rt_out   = ifid_plif.rt_out;
-	assign huif.idex_pcsrc_out = idex_plif.pcsrc_out;
-	//NEW STUFF - HU needs these to determine if branching
-	assign huif.idex_BEQ             = idex_plif.BEQ_out;
-	assign huif.idex_branch          = idex_plif.branch_out;
-	assign huif.alu_zero_f           = aluif.zero_f; 
-
-	//
-	// Instruction Fetch: PC Block
-	//
-	// inputs
+// Module Variables
+// ----------------------------------------- //
+	// unknown, please sort
+	word_t immedEXT;
+	word_t PCplus4;
+	logic temphalt;
+	logic ifid_temp_flush_enable;
 	logic pcif_enable_temp;
-	assign pcif_enable_temp = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;
-
-	assign pcif.pcenable = pcif_enable_temp && !huif.lw_nop;
-	assign pcif.pcsrc    = idex_plif.pcsrc_out; 
-	
-	assign pcif.branch_pc4 = idex_plif.pcout_out + 4;
-	assign pcif.rdat1    = idex_plif.rdat1_out; 
-	assign pcif.immed    = idex_plif.immed_out; 
-	assign pcif.immedEXT = idex_plif.extop_out ? {{16{idex_plif.immed_out[15]}}, idex_plif.immed_out}: {16'h0000, idex_plif.immed_out}; 
-	assign dpif.imemREN = cuif.imemREN;
-
-	
-	// outputs
-	assign dpif.imemaddr = pcif.pcout;
-
-	//
-	//IFID Pipeline Register Assignments
-	//
-
 	logic ifid_enable_temp;
+	logic [1:0] pcsrcFF;
+	word_t outport_temp;
+	word_t wdat_temp;
+	logic idex_temp_flush_enable;
+	logic dwen_temp, rwen_temp;
+	word_t inst_temp;
+	regbits_t wsel_temp;
+	word_t temp_rdat2;
+	logic stall;
 
-	always_comb begin
-		if (huif.lw_nop == 1) begin
-			ifid_enable_temp = 0;
-		end else begin
-			ifid_enable_temp = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;
+// Module Outputs
+// ----------------------------------------- //
+	assign dpif.imemREN   = cuif.imemREN;
+	assign dpif.imemaddr  = pcif.pcout;
+	assign dpif.dmemstore = exm_plif.rdat2_out; 
+	assign dpif.dmemaddr  = exm_plif.outport_out; 
+	assign dpif.dmemREN   = exm_plif.dREN_out;
+	assign dpif.dmemWEN   = exm_plif.dWEN_out;
+
+	// Halt Latch
+	// ----------------------------------------- //	
+
+	always_ff @(posedge CLK, negedge nRST) begin
+		if (!nRST) begin
+			temphalt <= 0;
+		end
+		else begin
+			temphalt <= exm_plif.halt_out || dpif.halt;
 		end
 	end
+	assign dpif.halt = temphalt;
 
-	// Control Signals
-	assign ifid_plif.enable = ifid_enable_temp;//1; // UPDATE FOR PC_CHG INSTR
-	assign ifid_temp_flush_enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit:  dpif.ihit;
-	assign ifid_plif.flush  = ( huif.jmp_flush || huif.brch_flush ) && ifid_temp_flush_enable; // UPDATE FOR PC_CHG INSTR
 
-	// Input Assignments
-	assign ifid_plif.instruction_in = dpif.imemload;
-	assign ifid_plif.pcout_in       = pcif.pcout;
-	assign ifid_plif.rs_in          = dpif.imemload[25:21];
-	assign ifid_plif.rt_in          = dpif.imemload[20:16];
+// Instruction Fetch Stage
+// ----------------------------------------- //	
 
-	//
-	// Instruction Decode: Control Unit, Register File
-	//
+	// Program Counter Inputs
+	// ----------------------------------------- //
+	assign pcif_enable_temp = dpif.ihit && !stall;
+	assign pcif.pcenable    = pcif_enable_temp && !huif.lw_nop;
 
+	assign pcif.pcsrc       = idex_plif.pcsrc_out; 
+	assign pcif.branch_pc4  = idex_plif.pcout_out + 4;
+	assign pcif.rdat1       = idex_plif.rdat1_out; 
+	assign pcif.immed       = idex_plif.immed_out; 
+	assign pcif.immedEXT    = idex_plif.extop_out ? {{16{idex_plif.immed_out[15]}}, idex_plif.immed_out}: {16'h0000, idex_plif.immed_out}; 
+	assign pcif.BEQ         = idex_plif.BEQ_out;
+	assign pcif.branch      = idex_plif.branch_out;
+	assign pcif.zero_f      = aluif.zero_f; 
+
+// Instruction Decode Stage
+// ----------------------------------------- //
+
+	// Control Unit Inputs
+	// ----------------------------------------- //
 	assign cuif.instruction = ifid_plif.instruction_out;
 
+
+	// Register File Inputs
+	// ----------------------------------------- //
+	assign rfif.WEN   = mwb_plif.WEN_out;
+	assign rfif.wsel  = mwb_plif.wsel_out;
 	assign rfif.rsel1 = cuif.rs;
 	assign rfif.rsel2 = cuif.rt;
 
-	assign rfif.WEN   = mwb_plif.WEN_out; //mwb_plif.MemtoReg_out ? mwb_plif.WEN_out && dpif.dhit: mwb_plif.WEN_out;// && (dpif.ihit || dpif.dhit);
-
-	//assign rfif.wdat  = mwb_plif.MemtoReg_out ? mwb_plif.dmemload_out : mwb_plif.outport_out;
-	assign rfif.wsel  = mwb_plif.wsel_out;
-
-	//WDAT MUX
-	//LUI, MemtoReg, JAL MUX
-	word_t wdat_temp;
-
+	// Register File Write Data Selection
 	always_comb begin
 		if (mwb_plif.LUI_out) begin
 			wdat_temp = {mwb_plif.immed_out, 16'h0000};
@@ -174,25 +168,98 @@ module datapath (
 	end
 	assign rfif.wdat = wdat_temp;
 
-	//
-	//IDEX Pipeline Register Assignments
-	//
+// Execute Stage
+// ----------------------------------------- //
 
-	// Control Signals
-	logic temp_flush_enable;
-	assign idex_plif.enable  = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;
-	assign idex_temp_flush_enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit:  dpif.ihit;
-	assign idex_plif.flush   = (huif.jmp_flush || huif.brch_flush ) && idex_temp_flush_enable; // UPDATE FOR PC_CHG INSTR
-	
-	assign idex_plif.rdat1_in    = rfif.rdat1;
-	assign idex_plif.rdat2_in    = rfif.rdat2;
-	assign idex_plif.halt_in     = cuif.halt;
-	assign idex_plif.itype_in    = cuif.itype;
-	assign idex_plif.pcout_in    = ifid_plif.pcout_out;
+	// ALU Inputs
+	// ----------------------------------------- //
+	assign aluif.aluop  = idex_plif.ALUop_out;
+	assign aluif.extop  = idex_plif.extop_out;
+	assign aluif.immed  = idex_plif.immed_out;
+	assign aluif.shamt  = idex_plif.shamt_out;
+	assign aluif.ALUsrc = idex_plif.ALUsrc_out;
 
-	logic dwen_temp, rwen_temp;
-	word_t inst_temp;
+	always_comb begin
+		casez(fuif.ForwardA)
+			0: aluif.porta = idex_plif.rdat1_out;
+			1: aluif.porta = wdat_temp;
+			2: aluif.porta = exm_plif.outport_out;
+			default: aluif.porta = idex_plif.rdat1_out;
+		endcase
 
+		// Changed from piping into ALU directly so SW can use the forward
+		casez(fuif.ForwardB)
+			0: temp_rdat2 = idex_plif.rdat2_out;
+			1: temp_rdat2 = wdat_temp;
+			2: temp_rdat2 = exm_plif.outport_out;
+			default: temp_rdat2 = idex_plif.rdat2_out;
+		endcase
+
+	end
+
+	assign aluif.rdat2 = temp_rdat2;
+
+// Memory Stage
+// ----------------------------------------- //
+
+// Write Back Stage
+// ----------------------------------------- //
+
+
+// Stall Block
+// ----------------------------------------- //
+
+	always_comb begin
+		stall = 0;
+		exm_plif.clearMemReq = 0;
+
+		if (dpif.dhit) begin
+			exm_plif.clearMemReq = 1;
+			exm_plif.memData = dpif.dmemload;
+		end
+
+		if (exm_plif.dREN_out || exm_plif.dWEN_out) begin
+			stall = 1;
+		end 
+	end
+
+
+// Forwarding Unit Inputs
+// ----------------------------------------- //
+	assign fuif.exm_WEN       = exm_plif.WEN_out;
+	assign fuif.idex_rt_out   = idex_plif.rt_out;
+	assign fuif.idex_rs_out   = idex_plif.rs_out;
+	assign fuif.mwb_WEN       = mwb_plif.WEN_out;
+	assign fuif.exm_itype_out = exm_plif.itype_out;
+	assign fuif.mwb_itype_out = mwb_plif.itype_out;
+
+	assign fuif.mwb_wsel_out  = mwb_plif.wsel_out;
+	assign fuif.exm_wsel_out  = exm_plif.wsel_out;
+
+// Hazard Unit Inputs
+// ----------------------------------------- //
+	assign huif.idex_dren_out  = idex_plif.dREN_out;
+	assign huif.idex_rt_out    = idex_plif.rt_out;
+	assign huif.ifid_rs_out    = ifid_plif.rs_out;
+	assign huif.ifid_rt_out    = ifid_plif.rt_out;
+	assign huif.idex_pcsrc_out = idex_plif.pcsrc_out;
+	assign huif.idex_BEQ       = idex_plif.BEQ_out;
+	assign huif.idex_branch    = idex_plif.branch_out;
+	assign huif.alu_zero_f     = aluif.zero_f; 
+
+// Pipeline Registers Input Assignments
+// ----------------------------------------- //	
+
+	// IFID
+	// ----------------------------------------- //	
+	assign ifid_plif.instruction_in = dpif.imemload;
+	assign ifid_plif.pcout_in       = pcif.pcout;
+	assign ifid_plif.rs_in          = dpif.imemload[25:21];
+	assign ifid_plif.rt_in          = dpif.imemload[20:16];
+
+
+	// IDEX
+	// ----------------------------------------- //
 	always_comb 
 	begin
 		if (huif.lw_nop == 1) begin
@@ -231,72 +298,19 @@ module datapath (
 	assign idex_plif.jal_in      = cuif.jal;
 	assign idex_plif.LUI_in      = cuif.LUI;
 	assign idex_plif.pcsrc_in    = cuif.pcsrc;
+	assign idex_plif.rdat1_in    = rfif.rdat1;
+	assign idex_plif.rdat2_in    = rfif.rdat2;
+	assign idex_plif.halt_in     = cuif.halt;
+	assign idex_plif.itype_in    = cuif.itype;
+	assign idex_plif.pcout_in    = ifid_plif.pcout_out;
 
-	// Output Assignments
-
-	//
-	// Execute: WSEL Block & ALU
-	//
-
-	//wsel MUX
-	regbits_t wsel_temp;
-	always_comb 
-	begin
-		casez(idex_plif.RegDest_out)
-			0: wsel_temp = idex_plif.rd_out; // if RD
-			1: wsel_temp = idex_plif.rt_out; // if RT
-			2:wsel_temp = 31;                // if REG31 
-			default: wsel_temp = idex_plif.rd_out;
-	endcase
-	end
-
-	// ALU
-	//assign aluif.porta           = idex_plif.rdat1_out;
-	//assign aluif.rdat2           = idex_plif.rdat2_out;
-	assign aluif.aluop           = idex_plif.ALUop_out;
-	assign aluif.extop           = idex_plif.extop_out;
-	assign aluif.immed           = idex_plif.immed_out;
-	assign aluif.shamt           = idex_plif.shamt_out;
-	assign aluif.ALUsrc          = idex_plif.ALUsrc_out;
-
-	word_t temp_rdat2;
-
-	always_comb begin
-		casez(fuif.ForwardA)
-			0: aluif.porta = idex_plif.rdat1_out;
-			1: aluif.porta = wdat_temp;
-			2: aluif.porta = exm_plif.outport_out;
-			default: aluif.porta = idex_plif.rdat1_out;
-		endcase
-
-		// Changed from piping into ALU directly so SW can use the forward
-		casez(fuif.ForwardB)
-			0: temp_rdat2 = idex_plif.rdat2_out;
-			1: temp_rdat2 = wdat_temp;
-			2: temp_rdat2 = exm_plif.outport_out;
-			default: temp_rdat2 = idex_plif.rdat2_out;
-		endcase
-
-	end
-
-	assign aluif.rdat2 = temp_rdat2;
-
-
-
-	//
-	//EXM Pipeline Register Assignments
-	//
-	
-	// Control Signals
-	assign exm_plif.enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;//1; // UPDATE FOR PC_CHG INSTR
-	assign exm_plif.flush  = 0; // UPDATE FOR PC_CHG INSTR
-
-	// Input Assignments
+	// EXM
+	// ----------------------------------------- //
 	assign exm_plif.instruction_in = idex_plif.instruction_out;
 	assign exm_plif.immed_in    = idex_plif.immed_out;
 	assign exm_plif.zero_f_in   = aluif.zero_f;
 
-	word_t outport_temp;
+
 
 	always_comb begin
 		if (idex_plif.LUI_out) begin
@@ -304,6 +318,16 @@ module datapath (
 		end else begin
 			outport_temp = aluif.outport;
 		end
+	end
+
+	always_comb 
+	begin
+		casez(idex_plif.RegDest_out)
+			0: wsel_temp = idex_plif.rd_out; // if RD
+			1: wsel_temp = idex_plif.rt_out; // if RT
+			2: wsel_temp = 31;                // if REG31 
+			default: wsel_temp = idex_plif.rd_out;
+	endcase
 	end
 
 	assign exm_plif.outport_in  = outport_temp;
@@ -329,34 +353,15 @@ module datapath (
 	assign exm_plif.LUI_in      = idex_plif.LUI_out;
 	assign exm_plif.pcsrc_in    = idex_plif.pcsrc_out;
 
-	// Outputs
-	assign ruif.dren            = exm_plif.dREN_out;
-	assign ruif.dwen            = exm_plif.dWEN_out;
-	assign pcif.BEQ             = idex_plif.BEQ_out;
-	assign pcif.branch          = idex_plif.branch_out;
-	assign pcif.zero_f          = aluif.zero_f; 
-
-	//
-	// Memory: Request Interactions
-	//
-
-	assign dpif.dmemstore = exm_plif.rdat2_out; 
-	assign dpif.dmemaddr = exm_plif.outport_out; 
-
-
-	//
-	//MWB Pipeline Register Assignments
-	//
-	// Control Signals
-	assign mwb_plif.enable = (exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit: dpif.ihit;//1; // UPDATE FOR PC_CHG INSTR
-	assign mwb_plif.flush  = 0;
+	// MWB
+	// ----------------------------------------- //
 	assign mwb_plif.immed_in    = exm_plif.immed_out;
 	assign mwb_plif.rd_in      = exm_plif.rd_out;
 	// Input Assignments
 	assign mwb_plif.instruction_in = exm_plif.instruction_out;
 	assign mwb_plif.outport_in  = exm_plif.outport_out;
 	assign mwb_plif.wsel_in     = exm_plif.wsel_out;
-	assign mwb_plif.dmemload_in = dpif.dmemload; 
+	assign mwb_plif.dmemload_in = exm_plif.dmemload_out;
 	assign mwb_plif.halt_in     = exm_plif.halt_out;
 	assign mwb_plif.itype_in    = exm_plif.itype_out;
 	assign mwb_plif.rt_in      = exm_plif.rt_out;
@@ -367,28 +372,31 @@ module datapath (
 	assign mwb_plif.jal_in      = exm_plif.jal_out;
 	assign mwb_plif.LUI_in      = exm_plif.LUI_out;
 	assign mwb_plif.pcsrc_in    = exm_plif.pcsrc_out;
-	assign mwb_plif.pcout_in    = exm_plif.pcout_out;	
+	assign mwb_plif.pcout_in    = exm_plif.pcout_out;
 
+// Pipeline Registers Control Signals
+// ----------------------------------------- //
+	// IFID
+	// ----------------------------------------- //
+	assign ifid_plif.enable = dpif.ihit && !stall && !huif.lw_nop;
+	assign ifid_temp_flush_enable = dpif.ihit && !stall && !huif.lw_nop;//(exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit:  dpif.ihit;
+	assign ifid_plif.flush  = ( huif.jmp_flush || huif.brch_flush ) && ifid_temp_flush_enable; // UPDATE FOR PC_CHG INSTR
 
-	//
-	// Request Unit
-	//
-	assign dpif.dmemREN = ruif.dmemren; 
-	assign dpif.dmemWEN = ruif.dmemwen;
-	assign ruif.ihit = dpif.ihit;
-	assign ruif.dhit = dpif.dhit;
+	// IDEX
+	// ----------------------------------------- //
 
+	assign idex_plif.enable  = dpif.ihit && !stall;
+	assign idex_temp_flush_enable = dpif.ihit && !stall && !huif.lw_nop;//(exm_plif.dREN_out || exm_plif.dWEN_out)  ? dpif.dhit:  dpif.ihit;
+	assign idex_plif.flush   = (huif.jmp_flush || huif.brch_flush ) && idex_temp_flush_enable; // UPDATE FOR PC_CHG INSTR
 
-	//HALT latch
+	// EXM
+	// ----------------------------------------- //
+	assign exm_plif.enable = dpif.ihit && !stall;
+	assign exm_plif.flush  = 0; // UPDATE FOR PC_CHG INSTR
 
-	always_ff @(posedge CLK, negedge nRST) begin
-		if (!nRST) begin
-			temphalt = 0;
-		end
-		else begin
-			temphalt = exm_plif.halt_out || dpif.halt;
-		end
-	end
-	assign dpif.halt = temphalt;
+	// MWB
+	// ----------------------------------------- //
+	assign mwb_plif.enable = dpif.ihit && !stall;
+	assign mwb_plif.flush  = 0;
 
 endmodule

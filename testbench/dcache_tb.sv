@@ -131,7 +131,7 @@ assign dcif.dmemaddr = {tag, idx, blkoff, bytoff};
 parameter PERIOD = 10;
 initial begin
 
-// ----------------------------------------- // testcase 0
+// ----------------------------------------- // testcase 0 - reset
 
   testcase = 0;
 
@@ -155,22 +155,21 @@ initial begin
 
 // ----------------------------------------- // testcase 1
 
-  // testcase 1: read miss - cache 1, index 0
+  // testcase 1: read miss - cache 0, index 0
   testcase = 1;
 
   // testcase inputs
   dcif.halt = 0;
   dcif.dmemWEN = 0;
   dcif.dmemREN = 1;
-  dcif.dmemstore = 32'h000000DC; //dc
-  //address = 32'h00000100;
+  dcif.dmemstore = 32'h000000DC;
+
   tag    = 26'b00000000000000000000000100;
   idx    =  3'b000;
   blkoff =  1'b0;
   bytoff =  2'b00;
 
   // testcase expected
-  expected_cache = 0;
   expected_cacheData1 = 32'h00000050;
   expected_cacheData2 = 32'h000000A0;
   expected_dmemload   = 32'h00000050;
@@ -179,6 +178,7 @@ initial begin
   @(dcif.dhit);
 
   // testcase tests
+  $display("testcase 1:");
 
   // testing output
   if (expected_dmemload == dcif.dmemload) begin
@@ -202,9 +202,8 @@ initial begin
 
 // ----------------------------------------- // reset
 
-  #(PERIOD);
-
   // Reseting inputs & expected values
+  testcase = 555555;
   dcif.halt      = 0;
   dcif.dmemWEN   = 0;
   dcif.dmemREN   = 0;
@@ -222,147 +221,403 @@ initial begin
 
 // ----------------------------------------- // testcase 2
 
-  // //
-  // // read miss - fill cache 2 instead - same index
-  // // cache2
-  // //
-  // testcase = 2;
-  // dcif.halt = 0;
-  // dcif.dmemWEN = 0;
-  // dcif.dmemREN = 1;
-  // dcif.dmemstore = 32'h000000DC; //dc
-  // dcif.dmemaddr = 32'h0000A004;
+  // testcase 2: read miss - cache 1, index 0
+  testcase = 2;
 
-  // expected_cache = 2;
-  // expected_dmemload1 = 32'h00000002; //cache 2
-  // expected_dmemload2 = 32'h00000001;
+  // testcase inputs
+  dcif.halt = 0;
+  dcif.dmemWEN = 0;
+  dcif.dmemREN = 1;
+  dcif.dmemstore = 32'h000000DC;
 
-  // @(dcif.dhit);
+  tag    = 26'b00000000000000001010000000;
+  idx    =  3'b000;
+  blkoff =  1'b1;
+  bytoff =  2'b00;
 
-  // if (expected_dmemload1 == dcif.dmemload) begin
-  //   $display("Design correctly requested memory on a read miss");
-  // end else begin
-  //   $display("Design INCORRECTLY requested memory on a read miss");
-  // end
+  // testcase expected
+  expected_cacheData1 = 32'h00000001;
+  expected_cacheData2 = 32'h00000002;
+  expected_dmemload   = 32'h00000002;
 
-  // #(PERIOD)
+  // testcase trigger point
+  @(dcif.dhit);
 
-  // // Restesting Ghost Values
-  // dcif.dmemWEN = 0;
-  // expected_cache = 0;
-  // expected_dmemload1 = 32'h00000000;
-  // expected_dmemload2 = 32'h00000000;
+  // testcase tests
+  $display("testcase 2:");
 
-  // //
-  // // read hit - cache 1
-  // //
-  // testcase = 3;
-  // dcif.halt = 0;
-  // dcif.dmemWEN = 0;
-  // dcif.dmemREN = 1;
-  // dcif.dmemstore = 32'h000000DC; //dc
-  // dcif.dmemaddr = 32'h00000104;
+  if (expected_dmemload == dcif.dmemload) begin
+    $display("Design correctly delivered requested memory on a read miss");
+  end else begin
+    $display("Design INCORRECTLY delivered requested memory on a read miss");
+  end
 
-  // expected_cache = 1;
-  // expected_dmemload1 = 32'h000000A0;
-  // expected_dmemload2 = 32'h00000050;
+  // testing cache load
+  if (expected_cacheData1 == DUT.cacheTwo[0].data.wordA) begin
+    $display("Design correctly loaded first word of requested memory on a read miss");
+  end else begin
+    $display("Design INCORRECTLY loaded first word of requested memory on a read miss");
+  end
 
+  if (expected_cacheData2 == DUT.cacheTwo[0].data.wordB) begin
+    $display("Design correctly loaded second word of requested memory on a read miss");
+  end else begin
+    $display("Design INCORRECTLY loaded second word of requested memory on a read miss");
+  end
 
-  // @(dcif.dhit);
+// ----------------------------------------- // reset
 
-  // if (expected_dmemload1 == dcif.dmemload) begin
-  //   $display("Design correctly requested memory on a read hit");
-  // end else begin
-  //   $display("Design INCORRECTLY requested memory on a read hit");
-  // end
+  // Reseting inputs & expected values
+  testcase = 555555;
+  dcif.halt      = 0;
+  dcif.dmemWEN   = 0;
+  dcif.dmemREN   = 0;
+  dcif.dmemstore = 32'h000000DC; //dc
+  tag    = 0;
+  idx    = 0;
+  blkoff = 0;
+  bytoff = 0;
+  expected_cache      = 0;
+  expected_cacheData1 = 0;
+  expected_cacheData2 = 0;
+  expected_dmemload   = 0;
 
-  // #(PERIOD)
+  #(PERIOD)
 
-  // // Reseting Ghost Values
-  // dcif.dmemWEN = 0;
-  // expected_cache = 0;
-  // expected_dmemload1 = 32'h00000000;
-  // expected_dmemload2 = 32'h00000000;
+// ----------------------------------------- // testcase 3
 
-  // //
-  // // read hit - cache 2
-  // //
-  // testcase = 4;
-  // dcif.halt = 0;
-  // dcif.dmemWEN = 0;
-  // dcif.dmemREN = 1;
-  // dcif.dmemstore = 32'h000000DC; //dc
-  // dcif.dmemaddr = 32'h0000A000;
+  // tescase 3: read hit - cache 0, index 0
+  testcase = 3;
 
-  // expected_cache = 2;
-  // expected_dmemload1 = 32'h00000001;
-  // expected_dmemload2 = 32'h00000002;
-
-  // @(dcif.dhit);
-
-  // dcif.dmemWEN = 0;
-
-  // if (expected_dmemload1 == dcif.dmemload) begin
-  //   $display("Design correctly requested memory on a read hit");
-  // end else begin
-  //   $display("Design INCORRECTLY requested memory on a read hit");
-  // end
- 
-  // #(PERIOD)
-
-  // expected_cache = 0;
-  // expected_dmemload1 = 32'h00000000;
-  // expected_dmemload2 = 32'h00000000;
-
-
-  // //
-  // // write miss
-  // // cache1
-  // //
-  // testcase = 5;
-  // dcif.halt = 0;
-  // dcif.dmemWEN = 1;
-  // dcif.dmemREN = 0;
-  // dcif.dmemstore = 32'h00BEEF00;
-  // dcif.dmemaddr = 32'h0000B000;
-
-  // expected_cache = 1;
-  // expected_dmemload1 = 32'h00BEEF00;
-  // expected_dmemload2 = 32'h0000000B;
+  // testcase inputs
+  dcif.halt = 0;
+  dcif.dmemWEN = 0;
+  dcif.dmemREN = 1;
+  dcif.dmemstore = 32'h000000DC;
   
-  // @(dcif.dhit);
-  // dcif.dmemWEN = 0;
+  tag    = 26'b00000000000000000000000100;
+  idx    =  3'b000;
+  blkoff =  1'b1;
+  bytoff =  2'b00;
 
-  // if (expected_dmemload1 == dcif.dmemload) begin
-  //   $display("Design correctly requested memory on a write miss");
-  // end else begin
-  //   $display("Design INCORRECTLY requested memory on a write miss");
-  // end
+  // testcase expected
+  expected_dmemload   = 32'h000000A0;
 
-  // #(PERIOD)
+  // testcase trigger point
+  @(dcif.dhit);
 
-  // expected_cache = 0;
-  // expected_dmemload1 = 32'h00000000;
-  // expected_dmemload2 = 32'h00000000;
+  // testcase tests
+  $display("testcase 3:");
 
+  if (expected_dmemload == dcif.dmemload) begin
+    $display("Design correctly requested memory on a read hit");
+  end else begin
+    $display("Design INCORRECTLY requested memory on a read hit");
+  end
 
+// ----------------------------------------- // reset
 
-  // //
-  // // write hit
-  // // cache1
-  // // make dirty
-  // //
-  // testcase = 6;
-  // dcif.halt = 0;
-  // dcif.dmemWEN = 1;
-  // dcif.dmemREN = 0;
-  // dcif.dmemstore = 32'h00DEAD00;
-  // dcif.dmemaddr = 32'h0000B000;
-  // expected_cache = 1;
-  // expected_dmemload1 = 32'h00DEAD00;
+  // Reseting inputs & expected values
+  testcase = 555555;
+  dcif.halt      = 0;
+  dcif.dmemWEN   = 0;
+  dcif.dmemREN   = 0;
+  dcif.dmemstore = 32'h000000DC; //dc
+  tag    = 0;
+  idx    = 0;
+  blkoff = 0;
+  bytoff = 0;
+  expected_cache      = 0;
+  expected_cacheData1 = 0;
+  expected_cacheData2 = 0;
+  expected_dmemload   = 0;
 
-  // @(dcif.dhit);
+  #(PERIOD)
 
+// ----------------------------------------- // testcase 4
+
+  // testcase 4: read hit - cache 1, index 0
+  testcase = 4;
+
+  // testcases inputs
+  dcif.halt = 0;
+  dcif.dmemWEN = 0;
+  dcif.dmemREN = 1;
+  dcif.dmemstore = 32'h000000DC;
+
+  tag    = 26'b00000000000000001010000000;
+  idx    =  3'b000;
+  blkoff =  1'b0;
+  bytoff =  2'b00;
+
+  // testcase expected
+  expected_dmemload = 32'h00000001;
+
+  // testcase trigger point
+  @(dcif.dhit);
+
+  // testcase tests
+  $display("testcase 4:");
+
+  if (expected_dmemload == dcif.dmemload) begin
+    $display("Design correctly requested memory on a read hit");
+  end else begin
+    $display("Design INCORRECTLY requested memory on a read hit");
+  end
+
+// ----------------------------------------- // reset
+
+  // Reseting inputs & expected values
+  testcase = 555555;
+  dcif.halt      = 0;
+  dcif.dmemWEN   = 0;
+  dcif.dmemREN   = 0;
+  dcif.dmemstore = 32'h000000DC; //dc
+  tag    = 0;
+  idx    = 0;
+  blkoff = 0;
+  bytoff = 0;
+  expected_cache      = 0;
+  expected_cacheData1 = 0;
+  expected_cacheData2 = 0;
+  expected_dmemload   = 0;
+
+  #(PERIOD)
+
+// ----------------------------------------- // testcase 5
+
+  // testcase 5: write hit - cache 0, index 0
+  testcase = 5;
+
+  // testcase inputs
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'h00BEEF00;
+
+  tag    = 26'b00000000000000000000000100;
+  idx    =  3'b000;
+  blkoff =  1'b0;
+  bytoff =  2'b00;
+
+  // testcase expected
+  expected_cacheData1 = 32'h00BEEF00;
+  expected_cacheData2 = 32'h000000A0;
+  expected_dmemload   = 32'h00BEEF00;
+  
+  // testcase trigger point
+  @(dcif.dhit);
+
+  // testcase tests
+  $display("testcase 5:");
+
+  // testing cache load
+  if (expected_cacheData1 == DUT.cacheOne[0].data.wordA) begin
+    $display("Design correctly loaded first word of requested memory on a write hit");
+  end else begin
+    $display("Design INCORRECTLY loaded first word of requested memory on a write hit");
+  end
+
+  if (expected_cacheData2 == DUT.cacheOne[0].data.wordB) begin
+    $display("Design correctly loaded second word of requested memory on a write hit");
+  end else begin
+    $display("Design INCORRECTLY loaded second word of requested memory on a write hit");
+  end
+
+// ----------------------------------------- // reset
+
+  // Reseting inputs & expected values
+  testcase = 555555;
+  dcif.halt      = 0;
+  dcif.dmemWEN   = 0;
+  dcif.dmemREN   = 0;
+  dcif.dmemstore = 32'h000000DC; //dc
+  tag    = 0;
+  idx    = 0;
+  blkoff = 0;
+  bytoff = 0;
+  expected_cache      = 0;
+  expected_cacheData1 = 0;
+  expected_cacheData2 = 0;
+  expected_dmemload   = 0;
+
+  #(PERIOD);
+
+// ----------------------------------------- // testcase 6
+
+  // testcase 6: write hit - cache 1, index 0
+  testcase = 6;
+
+  // testcase inputs
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'h00DEAD00;
+
+  tag    = 26'b00000000000000001010000000;
+  idx    =  3'b000;
+  blkoff =  1'b1;
+  bytoff =  2'b00;
+
+  // testcase expected
+  expected_cacheData1 = 32'h00000001;
+  expected_cacheData2 = 32'h00DEAD00;
+
+  // testcase trigger point
+  @(dcif.dhit);
+
+  // testcase tests
+  $display("testcase 6:");
+
+  // testing cache load
+  if (expected_cacheData1 == DUT.cacheTwo[0].data.wordA) begin
+    $display("Design correctly loaded first word of requested memory on a write hit");
+  end else begin
+    $display("Design INCORRECTLY loaded first word of requested memory on a write hit");
+  end
+
+  if (expected_cacheData2 == DUT.cacheTwo[0].data.wordB) begin
+    $display("Design correctly loaded second word of requested memory on a write hit");
+  end else begin
+    $display("Design INCORRECTLY loaded second word of requested memory on a write hit");
+  end
+
+// ----------------------------------------- // reset
+
+  // Reseting inputs & expected values
+  testcase = 555555;
+  dcif.halt      = 0;
+  dcif.dmemWEN   = 0;
+  dcif.dmemREN   = 0;
+  dcif.dmemstore = 32'h000000DC; //dc
+  tag    = 0;
+  idx    = 0;
+  blkoff = 0;
+  bytoff = 0;
+  expected_cache      = 0;
+  expected_cacheData1 = 0;
+  expected_cacheData2 = 0;
+  expected_dmemload   = 0;
+
+  #(PERIOD);
+
+// ----------------------------------------- // testcase 7
+
+  // testcase 7: write miss w/o cleaning - cache 0, index 1
+  testcase = 7;
+
+  // testcase inputs
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'h00DEAD00;
+
+  tag    = 26'b00000000000000001100000000;
+  idx    =  3'b001;
+  blkoff =  1'b0;
+  bytoff =  2'b00;
+
+  // testcase expected
+  expected_cacheData1 = 32'h00DEAD00;
+  expected_cacheData2 = 32'h0000000D;
+
+  // testcase trigger point
+  @(dcif.dhit);
+
+  // testcase tests
+  $display("testcase 7:");
+
+  // testing cache load
+  if (expected_cacheData1 == DUT.cacheOne[1].data.wordA) begin
+    $display("Design correctly loaded first word of requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY loaded first word of requested memory on a write miss");
+  end
+
+  if (expected_cacheData2 == DUT.cacheOne[1].data.wordB) begin
+    $display("Design correctly loaded second word of requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY loaded second word of requested memory on a write miss");
+  end
+
+// ----------------------------------------- // reset
+
+  // Reseting inputs & expected values
+  testcase = 555555;
+  dcif.halt      = 0;
+  dcif.dmemWEN   = 0;
+  dcif.dmemREN   = 0;
+  dcif.dmemstore = 32'h000000DC; //dc
+  tag    = 0;
+  idx    = 0;
+  blkoff = 0;
+  bytoff = 0;
+  expected_cache      = 0;
+  expected_cacheData1 = 0;
+  expected_cacheData2 = 0;
+  expected_dmemload   = 0;
+
+  #(PERIOD);
+
+// ----------------------------------------- // testcase 8
+
+  // testcase 8: write miss w/ cleaning - cache 0, index 1
+  testcase = 8;
+
+  // testcase inputs
+  dcif.halt = 0;
+  dcif.dmemWEN = 1;
+  dcif.dmemREN = 0;
+  dcif.dmemstore = 32'h00BEEF00;
+
+  tag    = 26'b00000000000000001100000000;
+  idx    =  3'b001;
+  blkoff =  1'b1;
+  bytoff =  2'b00;
+
+  // testcase expected
+  expected_cacheData1 = 32'h00DEAD00;
+  expected_cacheData2 = 32'h00BEEF00;
+
+  // testcase trigger point
+  @(dcif.dhit);
+
+  // testcase tests
+  $display("testcase 8:");
+
+  // testing cache load
+  if (expected_cacheData1 == DUT.cacheOne[1].data.wordA) begin
+    $display("Design correctly loaded first word of requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY loaded first word of requested memory on a write miss");
+  end
+
+  if (expected_cacheData2 == DUT.cacheOne[1].data.wordB) begin
+    $display("Design correctly loaded second word of requested memory on a write miss");
+  end else begin
+    $display("Design INCORRECTLY loaded second word of requested memory on a write miss");
+  end
+
+// ----------------------------------------- // reset
+
+  // Reseting inputs & expected values
+  testcase = 555555;
+  dcif.halt      = 0;
+  dcif.dmemWEN   = 0;
+  dcif.dmemREN   = 0;
+  dcif.dmemstore = 32'h000000DC; //dc
+  tag    = 0;
+  idx    = 0;
+  blkoff = 0;
+  bytoff = 0;
+  expected_cache      = 0;
+  expected_cacheData1 = 0;
+  expected_cacheData2 = 0;
+  expected_dmemload   = 0;
+
+  #(PERIOD);
+
+// ----------------------------------------- // commented out stuff
   // dcif.dmemWEN = 0;
 
   // if (expected_dmemload1 == dcif.dmemload) begin
@@ -587,7 +842,7 @@ initial begin
   // expected_dmemload2 = 32'h00000005;
   
   // @(dcif.dhit);
-  // dcif.dmemWEN = 0;
+  // dcif.dmemWEN = 0;// ----------------------------------------- //
 
   // if (expected_dmemload1 == dcif.dmemload) begin
   //   $display("Design correctly requested memory on a write miss");
@@ -635,7 +890,7 @@ initial begin
   // // write miss
   // // cache 2
   // // 8
-  // testcase = 12;
+  // testcase = 12;// ----------------------------------------- //
   // dcif.halt = 0;
   // dcif.dmemWEN = 1;
   // dcif.dmemREN = 0;
@@ -661,27 +916,35 @@ initial begin
   // expected_dmemload1 = 32'h00000000;
   // expected_dmemload2 = 32'h00000000;
 
+// ----------------------------------------- // reset
 
+  // Reseting inputs & expected values
+  testcase = 555555;
+  dcif.halt      = 0;
+  dcif.dmemWEN   = 0;
+  dcif.dmemREN   = 0;
+  dcif.dmemstore = 32'h000000DC; //dc
+  tag    = 0;
+  idx    = 0;
+  blkoff = 0;
+  bytoff = 0;
+  expected_cache      = 0;
+  expected_cacheData1 = 0;
+  expected_cacheData2 = 0;
+  expected_dmemload   = 0;
 
+  #(PERIOD);
 
+// ----------------------------------------- // flushin
 
-  $display("  Halt - Flush Begins");
-  //
+  $display("Halt - Flush Begins");
   // halt
-  //
   testcase = 9999999;
   dcif.halt = 1;
-  dcif.dmemWEN = 0;
-  dcif.dmemREN = 0;
-  dcif.dmemstore = 32'h000000DC; //dc
-  //dcif.dmemaddr = 32'h000000DC; //dc
 
-
-  #(PERIOD)
-
-  dcif.dmemWEN = 0;
-
-  #(PERIOD*100);
+  @(dcif.flushed);
+  #(PERIOD * 10);
 
 end
 endprogram
+

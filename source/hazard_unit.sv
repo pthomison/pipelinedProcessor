@@ -15,15 +15,17 @@ module hazard_unit (
 
 always_comb begin 
 	huif.lw_nop = 0;
-	if ((huif.idex_dren_out == 1) && 
-		((huif.idex_rt_out == huif.ifid_rs_out) || 
-			(huif.idex_rt_out == huif.ifid_rt_out)))
-	begin
+
+	// if 
+	if ((huif.idex_dren_out == 1) && ((huif.idex_rt_out == huif.ifid_rs_out) || (huif.idex_rt_out == huif.ifid_rt_out))) begin
 		huif.lw_nop = 1;
 	end
 end
 
-//00 if PC+4 - 01 if JR - 10 if BEQ or BNE  - 11 if J or JAL
+//00 if PC+4
+//01 if JR
+//10 if BEQ/BNE
+//11 if J/JAL
 always_comb begin
 
 
@@ -57,27 +59,4 @@ always_comb begin
  endcase
 
 end
-
-
-// 	if (huif.idex_pcsrc_out == 3 || huif.idex_pcsrc_out == 1 ) begin
-// 		huif.jmp_flush = 1;
-// 	end 
-// 	else if (huif.idex_pcsrc_out == 2) begin
-// 		if (huif.idex_BEQ && huif.idex_branch && huif.alu_zero_f) begin
-// 			huif.brch_flush = 1;
-// 		end
-// 		else if (!huif.idex_BEQ && huif.idex_branch && !huif.alu_zero_f) begin
-// 			huif.brch_flush = 1;
-// 		end
-// 		else begin
-// 			huif.brch_flush = 0;
-// 		end
-
-// 	end
-// 	else begin
-// 		huif.jmp_flush = 0;
-// 		huif.brch_flush = 0;
-// 	end
-// end
-
 endmodule

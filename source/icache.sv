@@ -16,70 +16,57 @@ module icache (
 
 import cpu_types_pkg::*;
 
+// Module Structs
+// ----------------------------------------- //
+	typedef struct packed {
+		icachef_t  addr;
+		word_t     data;
+		logic     valid;
+	} frame;
 
-icachef_t cacheAddr  [15:0];
-word_t    cacheData  [15:0];
-logic     cacheValid [15:0];
+// Module Enums
+// ----------------------------------------- //
+	typedef enum logic [1:0] {
+	IDLE         = 2'b00,
+	IHIT         = 2'b01,
+	MISSREQ      = 2'b10,
+	MISSLOAD     = 2'b11
+	} controllerState;
 
-icachef_t reqAddr;
+// Module Variables
+// ----------------------------------------- //
 
-word_t mdata, cdata;
+	frame cache [15:0];
 
-logic update;
+	icachef_t reqAddr;
 
-logic valid, tagEqual, prehit;
+	word_t cdata;
 
-typedef enum logic [1:0] {
-IDLE         = 2'b00,
-IHIT         = 2'b01,
-MISSREQ      = 2'b10,
-MISSLOAD     = 2'b11
-} controllerState;
+	logic prehit, update;
 
-controllerState currState;
-controllerState nextState;
+	controllerState currState, nextState;
 
 // Type Casting To ICache Address
 assign reqAddr = icachef_t'(dcif.imemaddr);
-assign mdata   = cif.iload;
 
 // Cache Data
 // Handles nRST and writing in new values
 always_ff @(posedge CLK, negedge nRST) begin
 	if(nRST == 0) begin
-		cacheAddr  <= '{default:'0};
-		cacheData  <= '{default:'0};
-		cacheValid <= '{default:'0};
+		cache <= '{default:'0};
 	end else begin
 		if (update == 1) begin
-			cacheAddr[reqAddr.idx].tag <= reqAddr.tag;
-			cacheAddr[reqAddr.idx].idx <= reqAddr.idx;
-			cacheAddr[reqAddr.idx].bytoff <= reqAddr.bytoff;
-			cacheData[reqAddr.idx] <= mdata;
-			cacheValid[reqAddr.idx] <= 1;
+			cache[reqAddr.idx].addr  <= reqAddr;
+			cache[reqAddr.idx].data  <= cif.iload;
+			cache[reqAddr.idx].valid <= 1;
 		end
 	end
 end
 
 // Cache Data
 // Handles pulling the data and testing it
-always_comb begin
-	if (reqAddr.tag == cacheAddr[reqAddr.idx].tag) begin
-		tagEqual = 1;
-	end else begin
-		tagEqual = 0;
-	end
-
-	if (cacheValid[reqAddr.idx] == 1) begin
-		valid = 1;
-	end else begin
-		valid = 0;
-	end
-
-	cdata = cacheData[reqAddr.idx];
-end
-
-assign prehit = tagEqual && valid;
+assign prehit = (reqAddr.tag == cache[reqAddr.idx].addr.tag) && (cache[reqAddr.idx].valid == 1);
+assign cdata = cache[reqAddr.idx].data;
 
 // Cache Controller
 // Handles nRST and advancing state
@@ -92,16 +79,9 @@ always_ff @(posedge CLK, negedge nRST) begin
 end
 
 // Cache Controller
-// Handles nextState and control signals
-// Datapath Control Signals: dcif.ihit
-// RAM Control Signals: cif.iaddr, cif.iREN
-// Internal Control Signals: update
+// Handles nextState
 always_comb begin
 	if (currState == IDLE) begin
-		dcif.ihit = 0;
-		cif.iaddr = 0;
-		cif.iREN  = 0;
-		update    = 0;
 
 		if ((prehit == 1) && (dcif.imemREN == 1)) begin
 			nextState = IHIT;
@@ -112,34 +92,40 @@ always_comb begin
 		end
 
 	end else if (currState == IHIT) begin
-		dcif.ihit = 1;
-		cif.iaddr = 0;
-		cif.iREN  = 0;
-		update    = 0;
 		nextState = IDLE;
 
 	end else if (currState == MISSREQ) begin
-		dcif.ihit = 0;
-		cif.iaddr = dcif.imemaddr;
-		cif.iREN  = 1;
-		update    = 0;
-
 		if (cif.iwait == 1) begin
 			nextState = MISSREQ;
 		end else begin
-			nextState = MISSLOAD;
+			nextState = IDLE;
 		end
-
-	end else if (currState == MISSLOAD) begin
-		dcif.ihit = 1;
-		cif.iaddr = 0;
-		cif.iREN  = 0;
-		update    = 1;
-		nextState = IDLE;
-	end
+	end 
 end
 
-assign dcif.imemload = (prehit == 1) ? cdata: mdata;
+// control signals
+always_comb begin
+	dcif.ihit = 0;
+	cif.iaddr = 0;
+	cif.iREN  = 0;
+	update    = 0;
+	dcif.imemload = 0;
 
+	if (currState == IDLE) begin
+	end 
+
+	else if (currState == IHIT) begin
+		dcif.ihit = 1;
+		dcif.imemload = cdata;
+
+	end 
+
+	else if (currState == MISSREQ) begin
+		cif.iaddr = dcif.imemaddr;
+		cif.iREN  = 1;
+		update    = 1;
+	end 
+
+end
 
 endmodule
