@@ -56,19 +56,29 @@ import cpu_types_pkg::*;
 	logic recUsed [15:0];
 
 	dcachef_t reqAddr;
+
+	//mload is cif.dload
+	//mstore is dcif.dmemstore
 	word_t mload, mstore;
 
+	//updateRead - if 1 then read from memory
+	//updateWrite - if 1 then overwriting data in a cache
+	//updateRecentUsed - if 1 then recently used needs to be updated
+	//updateClean - if 1 then current data is clean, if 0 then dirty
 	logic updateRead, updateWrite, updateRecentUsed, updateClean;
 
+	//Address of word A, address of word B
 	word_t loadAddrA, loadAddrB;
 
-	logic avaliableCache; // 0 for A, 1 for B
+	// 0 for cache1, 1 for cache2
+	logic avaliableCache; 
 
 	logic destinationDirty;
 
 	logic prehitOne, prehitTwo, prehit;
 	logic validOne, validTwo;
 	logic wordDestRead, wordDestWrite;
+	//flushCacheSelect = 0 for cache1, 1 for cache2
 	logic flushCacheSelect;
 	logic [3:0] flushIdxSelect;
 	logic hitCache;
@@ -82,6 +92,8 @@ import cpu_types_pkg::*;
 
 	controllerState currState;
 	controllerState nextState;
+
+
 
 // Request Address Selection
 // ----------------------------------------- //
@@ -154,19 +166,17 @@ import cpu_types_pkg::*;
 						end
 					end
 				end
-
-
 			end 
 
 			else if (dcif.halt == 1) begin
-				if (updateClean == 1) begin
+				//Flushing now
+				if (updateClean == 1 && flushCacheSelect == 0) begin
 					cacheOne[reqAddr.idx].dirty       <= 0;
 				end
 			end
 
 			// Hit; Need to write to reg if it is a write
 			else begin
-
 
 				if (hitCache == 0) begin
 					// marks the dirty bit
@@ -240,12 +250,11 @@ import cpu_types_pkg::*;
 						end
 					end
 				end
-
-
 			end 
 
 			else if (dcif.halt == 1) begin
-				if (updateClean == 1) begin
+				//flushing now
+				if (updateClean == 1 && flushCacheSelect == 1) begin
 					cacheTwo[reqAddr.idx].dirty       <= 0;
 				end
 			end
@@ -572,6 +581,7 @@ import cpu_types_pkg::*;
 
 		end else if (currState == OVERWRITE) begin	
 			// Writes in new write data, makes dirty
+			updateClean	  = 0;
 			updateWrite   = 1;
 
 		end else if (currState == READHIT) begin

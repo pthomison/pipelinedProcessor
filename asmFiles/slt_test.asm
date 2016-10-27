@@ -69,11 +69,11 @@ sw $4, 0($14)
 slti $4, $2, 0x7FFF
 sw $4, 0($15)
 
-sltiu $4, $1, 0x7FFF
-sw $4, 0($16)
+#sltiu $4, $1, 0x7FFF
+#sw $4, 0($16)#
 
-sltiu $4, $2, 0x7FFF
-sw $4, 0($17)
+#sltiu $4, $2, 0x7FFF
+#sw $4, 0($17)
 
 
 ##pos and small pos
