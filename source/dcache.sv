@@ -547,6 +547,7 @@ import cpu_types_pkg::*;
 		updateRead       = 0;
 		updateWrite      = 0;
 		updateRecentUsed = 0;
+		updateClean		 = 0; //new
 
 		if (currState == IDLE) begin
 			// do nothing
