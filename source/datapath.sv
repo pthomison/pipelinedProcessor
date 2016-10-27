@@ -212,6 +212,7 @@ datapath for pipeline
 	always_comb begin
 		stall = 0;
 		exm_plif.clearMemReq = 0;
+		exm_plif.memData = 0;
 
 		if (dpif.dhit) begin
 			exm_plif.clearMemReq = 1;

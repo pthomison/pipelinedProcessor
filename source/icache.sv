@@ -81,6 +81,8 @@ end
 // Cache Controller
 // Handles nextState
 always_comb begin
+	nextState = IDLE;
+	
 	if (currState == IDLE) begin
 
 		if ((prehit == 1) && (dcif.imemREN == 1)) begin
