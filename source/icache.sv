@@ -3,15 +3,17 @@
 */
 
 // interface include
-`include "cache_control_if.vh"
+//`include "cache_control_if.vh"
+`include "datapath_cache_if.vh"
+`include "caches_if.vh"
 
 // memory types
 `include "cpu_types_pkg.vh"
 
 module icache (
   input CLK, nRST,
-  datapath_cache_if.cache dcif, 
-  caches_if.caches cif
+  datapath_cache_if.icache dcif, 
+  caches_if.icache cif
 );
 
 import cpu_types_pkg::*;
@@ -81,6 +83,8 @@ end
 // Cache Controller
 // Handles nextState
 always_comb begin
+	nextState = IDLE;
+
 	if (currState == IDLE) begin
 
 		if ((prehit == 1) && (dcif.imemREN == 1)) begin

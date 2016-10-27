@@ -212,15 +212,16 @@ datapath for pipeline
 	always_comb begin
 		stall = 0;
 		exm_plif.clearMemReq = 0;
+		exm_plif.memData = 0;
 
 		if (dpif.dhit) begin
 			exm_plif.clearMemReq = 1;
 			exm_plif.memData = dpif.dmemload;
+		end else begin
+			if (exm_plif.dREN_out || exm_plif.dWEN_out) begin
+				stall = 1;
+			end 
 		end
-
-		if (exm_plif.dREN_out || exm_plif.dWEN_out) begin
-			stall = 1;
-		end 
 	end
 
 
@@ -260,8 +261,7 @@ datapath for pipeline
 
 	// IDEX
 	// ----------------------------------------- //
-	always_comb 
-	begin
+	always_comb begin
 		if (huif.lw_nop == 1) begin
 			dwen_temp = 0;
 			//dren_temp = 0;

@@ -3,7 +3,9 @@
 */
 
 // interface include
-`include "cache_control_if.vh"
+//`include "cache_control_if.vh"
+`include "datapath_cache_if.vh"
+`include "caches_if.vh"
 
 // memory types
 `include "cpu_types_pkg.vh"
@@ -11,8 +13,8 @@
 // Module Declaration
 module dcache (
   input CLK, nRST,
-  datapath_cache_if.cache dcif, 
-  caches_if.caches cif
+  datapath_cache_if.dcache dcif, 
+  caches_if.dcache cif
 );
 
 import cpu_types_pkg::*;
@@ -303,6 +305,11 @@ import cpu_types_pkg::*;
 // Prehit Gates
 // ----------------------------------------- //
 	always_comb begin
+		prehit = 0;
+		prehitOne = 0;
+		prehitTwo = 0;
+		hitCache = 0;
+
 		if (currState == IDLE) begin
 			prehitOne = (cacheOne[reqAddr.idx].addr.tag == reqAddr.tag) && (cacheOne[reqAddr.idx].valid == 1);
 			prehitTwo = (cacheTwo[reqAddr.idx].addr.tag == reqAddr.tag) && (cacheTwo[reqAddr.idx].valid == 1);
@@ -325,6 +332,10 @@ import cpu_types_pkg::*;
 // Destination Selector -- only update on idle
 // ----------------------------------------- //
 	always_comb begin
+		avaliableCache = 0;
+		validOne = 0;
+		validTwo = 0;
+
 		if (dcif.halt == 1) begin
 			avaliableCache = flushCacheSelect;
 		end else if (currState == IDLE) begin 
@@ -390,6 +401,9 @@ import cpu_types_pkg::*;
 // Cache Controller Next State Logic
 // ----------------------------------------- //
 	always_comb begin
+		nextState = IDLE;
+		hitcounter = 0;
+
 		if (!nRST) begin
 			// On Reset
 			nextState = IDLE;
@@ -547,6 +561,9 @@ import cpu_types_pkg::*;
 		updateRead       = 0;
 		updateWrite      = 0;
 		updateRecentUsed = 0;
+		updateClean		 = 0; //new
+		flushCacheSelect = 0;
+		flushIdxSelect   = 0;
 
 		if (currState == IDLE) begin
 			// do nothing
