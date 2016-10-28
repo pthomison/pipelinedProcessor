@@ -11,8 +11,8 @@
 // Module Declaration
 module dcache (
   input CLK, nRST,
-  datapath_cache_if.cache dcif, 
-  caches_if.caches cif
+  datapath_cache_if.dcache dcif, 
+  caches_if.dcache cif
 );
 
 import cpu_types_pkg::*;
@@ -43,7 +43,7 @@ import cpu_types_pkg::*;
 	DATAREQA     = 4'h6,
 	DATAREQB     = 4'h7,
 	OVERWRITE    = 4'h8, 
-	XXXX         = 4'h9,
+	HITSTATE     = 4'h9,
 	FLUSH        = 4'hA,
 	STOP         = 4'hB
 	} controllerState;
@@ -82,10 +82,14 @@ import cpu_types_pkg::*;
 	logic flushCacheSelect;
 	logic [2:0] flushIdxSelect;
 	logic hitCache;
+	logic flushWord;
 
 	word_t cdataOne, cdataTwo, cdata;
 
+	word_t finalHitCounter;
 	word_t hitcounter;
+	word_t hitcount, thitcount;
+	word_t misscount, tmisscount;
 
 	block dirtyData;
 	word_t dirtyAddr;
@@ -128,7 +132,7 @@ import cpu_types_pkg::*;
 			if (dcif.halt == 1) begin
 				//Flushing now
 				if (updateClean == 1 && flushCacheSelect == 0) begin
-					if (cif.dwait == 0) begin
+					if (cif.dwait == 0 && flushWord == 1) begin
 						cacheOne[reqAddr.idx].dirty       <= 0;
 					end
 				end
@@ -221,7 +225,7 @@ import cpu_types_pkg::*;
 			if (dcif.halt == 1) begin
 				//flushing now
 				if (updateClean == 1 && flushCacheSelect == 1) begin
-					if (cif.dwait == 0) begin
+					if (cif.dwait == 0 && flushWord == 1) begin
 						cacheTwo[reqAddr.idx].dirty       <= 0;
 					end
 				end
@@ -402,15 +406,31 @@ import cpu_types_pkg::*;
 		end
 	end
 
+// Hit Counter Flip Flop
+// ----------------------------------------- //
+	// Handles nRST and advancing state
+	always_ff @(posedge CLK, negedge nRST) begin
+		if(nRST == 0) begin
+			finalHitCounter <= 0;
+			hitcount <=0;
+			misscount <=0;
+		end else begin
+			finalHitCounter <= hitcounter;
+			hitcount <= thitcount;
+			misscount <= tmisscount;
+		end
+	end
+
 // Cache Controller Next State Logic
 // ----------------------------------------- //
 	always_comb begin
 		nextState = IDLE;
-		//hitcounter = 0;
 		if (!nRST) begin
 			// On Reset
 			nextState = IDLE;
-			//hitcounter = 0;
+			hitcounter = 0;
+			thitcount = 0;
+			tmisscount = 0;
 		end else if (currState == IDLE) begin
 			if (dcif.halt == 1) begin
 				// Flushing
@@ -424,13 +444,11 @@ import cpu_types_pkg::*;
 				// Read Hit
 				nextState = READHIT;
 				// Logging Hit
-				//hitcounter = hitcounter + 1;
+				hitcounter = finalHitCounter + 1;
 
 			end else if (dcif.dmemWEN == 1 && prehit == 1) begin
 				// Write Hit
 				nextState = OVERWRITE;
-				// Logging Hit
-				//hitcounter = hitcounter + 1;
 
 			end else if (destinationDirty == 0) begin
 				// Any Miss; Destination is NOT dirty
@@ -466,7 +484,9 @@ import cpu_types_pkg::*;
 				nextState = DATAREQA;
 			end else begin
 				// Memory Ops are done
+				tmisscount = misscount + 1;
 				nextState = DATAREQB;
+				hitcounter = hitcounter - 1;
 			end
 		end else if (currState == DATAREQB) begin
 			if (cif.dwait == 1) begin
@@ -478,6 +498,7 @@ import cpu_types_pkg::*;
 			end else begin
 				// Memory Ops are done && Reading
 				nextState = IDLE;
+				
 			end
 		end else if (currState == OVERWRITE) begin
 			// Signal the system
@@ -485,19 +506,17 @@ import cpu_types_pkg::*;
 		end else if (currState == READHIT) begin
 			// Wait for next signal
 			nextState = IDLE;
-			// if (dcif.ihit) begin
-				
-			// end else begin
-			// 	nextState = READHIT;
-			// end
+			// Logging Hit
+			thitcount = hitcount + 1;
+			hitcounter = hitcounter + 1;
+
 		end else if (currState == WRITEHIT) begin
 			// Wait for next signal
 			nextState = IDLE;
-			// if (dcif.ihit) begin
-			// 	nextState = IDLE;
-			// end else begin
-			// 	nextState = WRITEHIT;
-			// end
+			// Logging Hit
+			thitcount = hitcount + 1;
+			hitcounter = hitcounter + 1;
+			
 		end else if (currState == FLUSH) begin
 			// if anything is dirty, go to dirty clean
 			if (
@@ -520,7 +539,13 @@ import cpu_types_pkg::*;
 			) begin
 				nextState = DIRTYCLEANA;
 			end else begin
-				nextState = STOP;
+				nextState = HITSTATE;
+			end
+		end else if (currState == HITSTATE) begin
+			if (cif.dwait == 0) begin
+				nextState = STOP; 
+			end else begin
+				nextState = HITSTATE; 
 			end
 		end else if (currState == STOP) begin
 			// Stops the system
@@ -530,6 +555,8 @@ import cpu_types_pkg::*;
 
 
 always_comb begin
+		flushCacheSelect = 0;
+		flushIdxSelect   = 0;
 	if (dcif.halt) begin
 		if (cacheOne[0].dirty == 1) begin
 			flushCacheSelect = 0;
@@ -607,6 +634,7 @@ end
 		updateWrite      = 0;
 		updateRecentUsed = 0;
 		updateClean		 = 0; //new
+		flushWord        = 0;
 
 
 		if (currState == IDLE) begin
@@ -618,6 +646,7 @@ end
 			updateClean   = 1;
 			cif.daddr     = dirtyAddr;
 			cif.dstore    = dirtyData.wordA;
+			flushWord     = 0;
 
 		end else if (currState == DIRTYCLEANB) begin
 			// Writes Dirty Data (second word) Back To Memory
@@ -625,6 +654,7 @@ end
 			updateClean   = 1;
 			cif.daddr     = dirtyAddr + 4;
 			cif.dstore    = dirtyData.wordB;
+			flushWord     = 1;
 
 		end else if (currState == DATAREQA) begin
 			// Requests First Block of Data
@@ -663,6 +693,10 @@ end
 			// flushIdxSelect   = 0;
 
 
+		end else if (currState == HITSTATE) begin
+			cif.dWEN      = 1;
+			cif.daddr     = 32'h00003100;
+			cif.dstore    = hitcount-misscount;
 		end else if (currState == STOP) begin
 		// Stop
 			dcif.flushed  = 1;

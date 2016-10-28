@@ -1,6 +1,12 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /system_tb/DUT/CPU/DP/CLK
+add wave -noupdate /system_tb/DUT/CPU/CM/DCACHE/finalHitCounter
+add wave -noupdate /system_tb/DUT/CPU/CM/DCACHE/hitcounter
+add wave -noupdate /system_tb/DUT/CPU/CM/DCACHE/hitcount
+add wave -noupdate /system_tb/DUT/CPU/CM/DCACHE/thitcount
+add wave -noupdate /system_tb/DUT/CPU/CM/DCACHE/misscount
+add wave -noupdate /system_tb/DUT/CPU/CM/DCACHE/tmisscount
 add wave -noupdate /system_tb/nRST
 add wave -noupdate /system_tb/DUT/CPU/DP/stall
 add wave -noupdate -expand -group instr /system_tb/DUT/CPU/dcif/imemload
@@ -373,8 +379,8 @@ add wave -noupdate -group RAMIF /system_tb/DUT/RAM/ramif/memaddr
 add wave -noupdate -group RAMIF /system_tb/DUT/RAM/ramif/memstore
 add wave -noupdate -expand /system_tb/DUT/CPU/DP/RF/register
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {223384662 ps} 0} {{Cursor 2} {4495826 ps} 0}
-quietly wave cursor active 2
+WaveRestoreCursors {{Cursor 1} {663715955 ps} 0} {{Cursor 2} {4495826 ps} 0}
+quietly wave cursor active 1
 configure wave -namecolwidth 226
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -389,4 +395,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {4241696 ps} {4637423 ps}
+WaveRestoreZoom {663742070 ps} {664045155 ps}

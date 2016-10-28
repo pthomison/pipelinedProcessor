@@ -15,8 +15,8 @@
 
 module caches (
   input logic CLK, nRST,
-  datapath_cache_if.cache dcif,
-  caches_if.caches cif
+  datapath_cache_if dcif,
+  caches_if cif
 );
   // import types
   import cpu_types_pkg::word_t;
