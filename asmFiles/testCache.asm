@@ -9,7 +9,7 @@ nop
 nop
 nop
 nop
-sw  $2, 1($1)
+sw  $2, 4($1)
 halt
 
 org 0x00000100

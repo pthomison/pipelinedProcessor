@@ -86,8 +86,6 @@ import cpu_types_pkg::*;
 
 	word_t cdataOne, cdataTwo, cdata;
 
-	word_t finalHitCounter;
-	word_t hitcounter;
 	word_t hitcount, thitcount;
 	word_t misscount, tmisscount;
 
@@ -411,11 +409,9 @@ import cpu_types_pkg::*;
 	// Handles nRST and advancing state
 	always_ff @(posedge CLK, negedge nRST) begin
 		if(nRST == 0) begin
-			finalHitCounter <= 0;
 			hitcount <=0;
 			misscount <=0;
 		end else begin
-			finalHitCounter <= hitcounter;
 			hitcount <= thitcount;
 			misscount <= tmisscount;
 		end
@@ -425,10 +421,11 @@ import cpu_types_pkg::*;
 // ----------------------------------------- //
 	always_comb begin
 		nextState = IDLE;
+		thitcount = hitcount;
+		tmisscount = misscount;
 		if (!nRST) begin
 			// On Reset
 			nextState = IDLE;
-			hitcounter = 0;
 			thitcount = 0;
 			tmisscount = 0;
 		end else if (currState == IDLE) begin
@@ -444,7 +441,6 @@ import cpu_types_pkg::*;
 				// Read Hit
 				nextState = READHIT;
 				// Logging Hit
-				hitcounter = finalHitCounter + 1;
 
 			end else if (dcif.dmemWEN == 1 && prehit == 1) begin
 				// Write Hit
@@ -479,14 +475,14 @@ import cpu_types_pkg::*;
 				nextState = DATAREQA;
 			end
 		end else if (currState == DATAREQA) begin
-			if (cif.dwait == 1) begin
-				// Waiting for Memory Ops
-				nextState = DATAREQA;
-			end else begin
+			if (cif.dwait == 0) begin
 				// Memory Ops are done
 				tmisscount = misscount + 1;
 				nextState = DATAREQB;
-				hitcounter = hitcounter - 1;
+			end else if (cif.dwait == 1) begin
+				// Waiting for Memory Ops
+				nextState = DATAREQA;
+				tmisscount = misscount;
 			end
 		end else if (currState == DATAREQB) begin
 			if (cif.dwait == 1) begin
@@ -508,14 +504,12 @@ import cpu_types_pkg::*;
 			nextState = IDLE;
 			// Logging Hit
 			thitcount = hitcount + 1;
-			hitcounter = hitcounter + 1;
 
 		end else if (currState == WRITEHIT) begin
 			// Wait for next signal
 			nextState = IDLE;
 			// Logging Hit
 			thitcount = hitcount + 1;
-			hitcounter = hitcounter + 1;
 			
 		end else if (currState == FLUSH) begin
 			// if anything is dirty, go to dirty clean
