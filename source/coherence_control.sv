@@ -101,6 +101,8 @@ module coherence_control (
 				nextState = SNOOP;
 			end else if ((cif.ccwrite[0] == 1 && cif.cctrans[0] == 1) || (cif.ccwrite[1] == 1 && cif.cctrans[1] == 1)) begin
 				nextState = INV;
+			end else if ((cif.dWEN[0] == 1 && cif.cctrans[0] == 1) || (cif.dWEN[1] == 1 && cif.cctrans[1] == 1)) begin
+				nextState = W1WEN;
 			end else begin
 				nextState = IDLE;
 			end 
@@ -136,13 +138,13 @@ module coherence_control (
 
 		end else if (currState == R1) begin
 			nextState = R1;
-			if (cif.dwait == 0) begin
+			if (mcif.dwait == 0) begin
 				nextState = R2;
 			end 
 
 		end else if (currState == R2) begin
 			nextState = R2;
-			if (cif.dwait == 0) begin
+			if (mcif.dwait == 0) begin
 				nextState = DATAREADY1;
 			end 
 
@@ -183,6 +185,14 @@ module coherence_control (
 		nextReq     = 0;
 		mcif.ramaddr  = 0;
 		mcif.ramstore = 0;
+		cif.ccsnoopaddr[0] = 0;
+		cif.ccsnoopaddr[1] = 0;
+		cif.dload[0] = 0;
+		cif.dload[1] = 0;
+		cif.dwait[0] = 1;
+		cif.dwait[1] = 1;
+		cif.ccinv[0] = 0;
+		cif.ccinv[1] = 0;
 
 		// Keeping Junk Data Out of the FF's
 		nextReq   = currReq;
@@ -192,9 +202,22 @@ module coherence_control (
 		
 
 		if (currState == IDLE) begin
+			//To SNOOP state
 			if (cif.dREN[0] == 1 && cif.cctrans[0] == 1) begin
 				nextReq   = 0;
 			end else if (cif.dREN[1] == 1 && cif.cctrans[1] == 1) begin
+				nextReq   = 1;
+
+			//To INV state
+			end else if (cif.ccwrite[0] == 1 && cif.cctrans[0] == 1) begin
+				nextReq   = 0;
+			end else if (cif.ccwrite[1] == 1 && cif.cctrans[1] == 1) begin
+				nextReq   = 1;
+
+			//To W1WEN state
+			end else if (cif.cctrans[0] == 1 && cif.dWEN[0] == 1) begin
+				nextReq   = 0;
+			end else if (cif.cctrans[1] == 1 && cif.dWEN[1] == 1) begin
 				nextReq   = 1;
 			end
 
@@ -283,7 +306,14 @@ module coherence_control (
 
 		// Invalidating other data
 		end else if (currState == INV) begin
-
+			//not finished...
+			if (currReq == 0) begin
+				cif.ccinv[0] = 0;
+				cif.ccinv[1] = 1;
+			end else if (currReq == 1) begin
+				cif.ccinv[0] = 1;
+				cif.ccinv[1] = 0;
+			end
 		end
 	end
 
