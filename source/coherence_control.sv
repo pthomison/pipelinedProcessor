@@ -11,38 +11,35 @@
 
 module coherence_control (
   input CLK, nRST,
-  cache_control_if.cc ccif
+  cache_control_if.cc cif,
+  cache_control_if.cc mcif
 );
   	// type import
   	import cpu_types_pkg::*;
-
-  	// number of cpus for cc
-  	parameter CPUS = 2;
 
 	// Module Enums
 	// ----------------------------------------- //
 	typedef enum logic [3:0] {
 	IDLE         = 4'h0,
-	ARBITRATE    = 4'h1,
+	INV          = 4'h1,
 	SNOOP	     = 4'h2,
 	R1           = 4'h3,
 	R2           = 4'h4,
-	DATAREADY	 = 4'h5,
-	W1           = 4'h6,
-	W2           = 4'h7
+	DATAREADY1   = 4'h5,
+	DATAREADY2   = 4'h6,
+	W1MOD        = 4'h7,
+	W2MOD        = 4'h8,
+	W1WEN        = 4'h9,
+	W2WEN        = 4'hA
 	} controllerState;
 
-	//CACHE inputs - 2 Bits each
+	//inputs from CACHE  - 2 Bits each
 	//iREN, dREN, dWEN, dstore (data), iaddr, daddr,
-	//RAM inputs
-	//ramload, ramstate,
 	//COHERENCE inputs from cache
 	//ccwrite, cctrans
 
-	//CACHE outputs - 2 Bits each
+	//outputs to cache - 2 Bits each
 	//iwait, dwait - always high unless in ACCESS, iload, dload,
-	//RAM outputs
-	//ramstore, ramaddr, ramWEN, ramREN,
 	//COHERENCE outputs to cache
 	//ccwait, ccinv, ccsnoopaddr
 
@@ -50,24 +47,15 @@ module coherence_control (
 	controllerState currState;
 	controllerState nextState;
 
-	//want to break ccsnoopaddr into parts
-	//ccsnoopaddr is word_t  [CPUS-1:0] 
-	dcachef_t snoopaddr0, snoopaddr1;
-	assign snoopaddr0 = dcachef_t'(dcif.ccsnoopaddr[0]);
-	assign snoopaddr1 = dcachef_t'(dcif.ccsnoopaddr[1]);
-
-	//1 if data exists in other cache, 0 if not
-	logic snoophit;
-
-	assign ccif.iload = ccif.ramload;
-	assign ccif.dload = ccif.ramload;
+	logic currReq, nextReq;
+	word_t rdata1, rdata2; 
+	word_t newRData1, newRData2;
 
 
-
-// Snoop Logic
+// Coherence Controller Flip Flop
 // ----------------------------------------- //
 
-	always_comb begin
+	always_ff @(posedge CLK, negedge nRST) begin
 		if(!nRST) begin
 			currState <= IDLE;
 		end else begin
@@ -76,97 +64,113 @@ module coherence_control (
 	end
 
 
-
-
-
-// Coherence Controller Flip Flop
+// Snoop Flip Flop
 // ----------------------------------------- //
 	always_ff @(posedge CLK, negedge nRST) begin
 		if(nRST == 0) begin
-			snoophit <= 0;
+			currReq  <= 0;
 		end else begin
-			//obviously not done yet
-			snoophit <= 1;
+			currReq  <= nextReq;
 		end
 	end
 
-
-
+// Read Data Flip Flop
+// ----------------------------------------- //
+	always_ff @(posedge CLK, negedge nRST) begin
+		if(nRST == 0) begin
+			rdata1  <= 0;
+			rdata2  <= 0;
+		end else begin
+			rdata1 <= newRData1;
+			rdata2 <= newRData2;
+		end
+	end
 
 // Coherence Controller Next State Logic
 // ----------------------------------------- //
 	always_comb begin
-		nextState = IDLE;
+		nextState = currState;
+
 
 		if (!nRST) begin
-			nextState = IDLE;
+			//nextState = IDLE;
+
 
 		end else if (currState == IDLE) begin
-			if (ccif.dREN == 0) begin
-				nextState = IDLE;
+			if ((cif.dREN[0] == 1 && cif.cctrans[0] == 1) || (cif.dREN[1] == 1 && cif.cctrans[1] == 1)) begin
+				nextState = SNOOP;
+			end else if ((cif.ccwrite[0] == 1 && cif.cctrans[0] == 1) || (cif.ccwrite[1] == 1 && cif.cctrans[1] == 1)) begin
+				nextState = INV;
 			end else begin
-				nextState = ARBITRATE;
+				nextState = IDLE;
 			end 
-
-		end else if (currState == ARBITRATE) begin
-			nextState = SNOOP;
 
 		end else if (currState == SNOOP) begin
-			if (snoophit == 1) begin
-				//Hit
-				//Data is in other cache
-				//Modified state
-				nextState = W1;
-			end else if (snoophit == 0) begin
-				//Miss
-				//Data is NOT in other cache
-				//Shared or Invalid state
-				nextState = R1;
-			end 
+			nextState = R1;
 
-		end else if (currState == W1) begin
-			if (cif.dwait == 0) begin
-				// Memory Ops are done
-				nextState = W2;
-			end else if (cif.dwait == 1) begin
-				// Waiting for Memory Ops
-				nextState = W1;
+			if (currReq == 0) begin
+				if (cif.ccwrite[1] == 1) begin
+					nextState = W1MOD;
+				end else begin 
+					nextState = R1;
+				end
+			end else if (currReq == 1) begin
+				if (cif.ccwrite[0] == 1) begin
+					nextState = W1MOD;
+				end else begin
+					nextState = R1;
+				end
 			end
 
-
-		end else if (currState == W2) begin
-			if (cif.dwait == 0) begin
-				// Memory Ops are done
-				nextState = DATAREADY;
-			end else if (cif.dwait == 1) begin
-				// Waiting for Memory Ops
-				nextState = W2;
+		end else if (currState == W1MOD) begin
+			nextState = W1MOD;
+			if (mcif.dwait == 0) begin
+				nextState = W2MOD;
 			end
 
-
+		end else if (currState == W2MOD) begin
+			nextState = DATAREADY1;
+			if (mcif.dwait == 0) begin
+				nextState = W2MOD;
+			end
 
 		end else if (currState == R1) begin
+			nextState = R1;
 			if (cif.dwait == 0) begin
-				// Memory Ops are done
 				nextState = R2;
-			end else if (cif.dwait == 1) begin
-				// Waiting for Memory Ops
-				nextState = R1;
-			end
-
+			end 
 
 		end else if (currState == R2) begin
+			nextState = R2;
 			if (cif.dwait == 0) begin
-				// Memory Ops are done
-				nextState = DATAREADY;
-			end else if (cif.dwait == 1) begin
-				// Waiting for Memory Ops
-				nextState = R2;
+				nextState = DATAREADY1;
+			end 
+
+		end else if (currState == DATAREADY1) begin
+			nextState = DATAREADY2;
+			//
+
+		end else if (currState == DATAREADY2) begin
+			nextState = IDLE;
+			//
+
+		end else if (currState == W1WEN) begin
+			nextState = W1WEN;
+			if (mcif.dwait == 0) begin
+				nextState = W2WEN;
 			end
 
-		end else if (currState == DATAREADY) begin
+		end else if (currState == W2WEN) begin
+			nextState = W2WEN;
+			if (mcif.dwait == 0) begin
+				nextState = IDLE;
+			end
+
+		end else if (currState == INV) begin
 			nextState = IDLE;
-		end 
+			//
+
+		end
 	end
 
 
@@ -176,125 +180,112 @@ module coherence_control (
 	always_comb begin
 
 		// Defaults Here
+		nextReq     = 0;
+		mcif.ramaddr  = 0;
+		mcif.ramstore = 0;
 
-
-
+		// Keeping Junk Data Out of the FF's
+		nextReq   = currReq;
+		newRData1 = rdata1;
+		newRData2 = rdata2;
 
 		
 
 		if (currState == IDLE) begin
-
-		end else if (currState == ARBITRATE) begin
-
+			if (cif.dREN[0] == 1 && cif.cctrans[0] == 1) begin
+				nextReq   = 0;
+			end else if (cif.dREN[1] == 1 && cif.cctrans[1] == 1) begin
+				nextReq   = 1;
+			end
 
 		end else if (currState == SNOOP) begin	
+			if (currReq == 0) begin
+				cif.ccsnoopaddr[1] = cif.daddr[0]; 
+			end else if (currReq == 1) begin
+				cif.ccsnoopaddr[0] = cif.daddr[1]; 
+			end
 
+		// Writing Requestee Data Word One
+		end else if (currState == W1MOD) begin
+			mcif.ramWEN = 1;
+			if (currReq == 0) begin
+				mcif.ramaddr  = cif.daddr[1];
+				mcif.ramstore = cif.dstore[1];
+			end else if (currReq == 1) begin
+				mcif.ramaddr  = cif.daddr[0];
+				mcif.ramstore = cif.dstore[0];
+			end
 
-		end else if (currState == W1) begin
+		// Writing Requestee Data Word Two
+		end else if (currState == W2MOD) begin
+			mcif.ramWEN = 1;
+			if (currReq == 0) begin
+				mcif.ramaddr  = cif.daddr[1];
+				mcif.ramstore = cif.dstore[1];
+			end else if (currReq == 1) begin
+				mcif.ramaddr  = cif.daddr[0];
+				mcif.ramstore = cif.dstore[0];
+			end
 
-
-		end else if (currState == W2) begin
-
-
+		// Reading Memory Data Word one
 		end else if (currState == R1) begin
+			mcif.ramREN = 1;
+			newRData1 = mcif.ramload;
+			if (currReq == 0) begin
+				mcif.ramaddr  = cif.daddr[0];
+			end else if (currReq == 1) begin
+				mcif.ramaddr  = cif.daddr[1];
+			end
 
-
+		// Reading Memory Data Word Two
 		end else if (currState == R2) begin
+			mcif.ramREN = 1;
+			newRData2 = mcif.ramload;
+			if (currReq == 0) begin
+				mcif.ramaddr  = cif.daddr[0];
+			end else if (currReq == 1) begin
+				mcif.ramaddr  = cif.daddr[1];
+			end
 
+		// Sending Read Data To Cache
+		end else if (currState == DATAREADY1) begin
+			if (currReq == 0) begin
+				cif.dwait[0] = 0;
+				cif.dload[0] = rdata1;
+			end else if (currReq == 1) begin
+				cif.dwait[1] = 0;
+				cif.dload[1] = rdata1;
+			end
 
-		end else if (currState == DATAREADY) begin
+		// Sending Read Data To Cache
+		end else if (currState == DATAREADY2) begin
+			if (currReq == 0) begin
+				cif.dwait[0] = 0;
+				cif.dload[0] = rdata2;
+			end else if (currReq == 1) begin
+				cif.dwait[1] = 0;
+				cif.dload[1] = rdata2;
+			end
 
+		// Strictly Writing Data To Memory
+		end else if (currState == W1WEN) begin
+			mcif.ramWEN = 1;
+			if (currReq == 0) begin
+				cif.dwait[0] = 0;
+				cif.dload[0] = rdata2;
+			end else if (currReq == 1) begin
+				cif.dwait[1] = 0;
+				cif.dload[1] = rdata2;
+			end
 
-		end 
-	end
+		// Strictly Writing Data To Memory
+		end else if (currState == W2WEN) begin
 
+		// Invalidating other data
+		end else if (currState == INV) begin
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//from first memory controller
-
-always_comb begin
-
-	//defaults
-	ccif.ramaddr = ccif.daddr;
-	ccif.ramREN = 0;
-	ccif.ramWEN = 0;
-	ccif.dwait = 1;
-	ccif.iwait = 1;
-	ccif.ramstore = ccif.dstore;
-
-	if (ccif.dREN) begin
-		ccif.ramaddr = ccif.daddr;
-		ccif.ramREN = 1;
-		ccif.ramWEN = 0;
-
-		if (ccif.ramstate == ACCESS) begin
-			ccif.dwait = 0;
-			ccif.iwait = 1;
-		end
-		else begin
-			ccif.dwait = 1;
-			ccif.iwait = 1;
-		end
-
-
-	end
-	else if (ccif.dWEN) begin
-		ccif.ramstore = ccif.dstore;
-		ccif.ramaddr = ccif.daddr;
-		ccif.ramREN = 0;
-		ccif.ramWEN = 1;
-
-		if (ccif.ramstate == ACCESS) begin
-			ccif.dwait = 0;
-			ccif.iwait = 1;
-		end
-		else begin
-			ccif.dwait = 1;
-			ccif.iwait = 1;
-		end
-
-
-	end
-	else if (ccif.iREN) begin
-		ccif.ramaddr = ccif.iaddr;
-		ccif.ramREN = 1;
-		ccif.ramWEN = 0;
-
-		if (ccif.ramstate == ACCESS) begin
-			ccif.dwait = 1;
-			ccif.iwait = 0;
-		end
-		else begin
-			ccif.dwait = 1;
-			ccif.iwait = 1;
 		end
 	end
 
-
-
-
-
-
-end
 
 endmodule

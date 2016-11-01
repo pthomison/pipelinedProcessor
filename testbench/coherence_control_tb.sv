@@ -21,16 +21,18 @@ module coherence_control_tb;
   // interface
   caches_if cache0();
   caches_if cache1();
+  caches_if cache2();
+  caches_if cache3();
 
   cache_control_if #(.CPUS(2)) ccif (cache0, cache1);
-  cache_control_if #(.CPUS(1)) mcif (cache0, cache1);
+  cache_control_if #(.CPUS(1)) mcif (cache2, cache3);
 
   // test program
-  test PROG (CLK, nRST, ccif, mcif);
+  test PROG (CLK, nRST, mcif, cache0, cache1);
   // DUT
 `ifndef MAPPED
-  coherence_control DUT(CLK, nRST, ccif);
-  memory_control DUTM(CLK, nRST, mcif);
+  coherence_control DUT(CLK, nRST, ccif, mcif);
+  //memory_control DUTM(CLK, nRST, mcif);
 `else
   // dcache DUT(
   //       .\cif.dwait (cif.dwait),
@@ -45,7 +47,7 @@ module coherence_control_tb;
   //       .\cif.daddr (cif.daddr),
   //       .\cif.dstore (cif.dstore),
   //       .\cif.ccwrite (cif.ccwrite),
-  //       .\cif.cctrans (cif.cctrans),
+  //       .\caches_ifcif.cctrans (cif.cctrans),
   //       .\cif.iREN (cif.iREN),
   //       .\cif.iaddr (cif.iaddr),
   //       .\dcif.dmemstore (dcif.dmemstore),
@@ -86,8 +88,9 @@ endmodule
 program test(
   input logic CLK, 
   output logic nRST,
-  cache_control_if.cc ccif,
-  cache_control_if.cc mcif
+  cache_control_if.cc mcif,
+  caches_if.tb cache0,
+  caches_if.tb cache1
 );
 
 import cpu_types_pkg::*;
@@ -103,7 +106,18 @@ initial begin
   testcase = 0;
 
   //Intial Conditions
-
+  cache0.dWEN    = 0;
+  cache1.dWEN    = 0;
+  cache0.dREN    = 0;
+  cache1.dREN    = 0;
+  cache0.dstore  = 0;
+  cache1.dstore  = 0;
+  cache0.daddr   = 0;
+  cache1.daddr   = 0;
+  cache0.ccwrite = 0;
+  cache1.ccwrite = 0;
+  cache0.cctrans = 0;
+  cache1.cctrans = 0;
 
   // Reseting
   #(PERIOD*2);
@@ -112,44 +126,39 @@ initial begin
   nRST = 1;
   #(PERIOD);
 
+  // // Check outputs
+  // if (currState == IDLE) 
+  // ramstore
+  // ramaddr
+  // ramWEN
+  // ramREN
+  // ccsnoopaddr
+  // ccinv
+  // dwait
+  // dload
+
+
 // ----------------------------------------- // testcase 1
 
-  // testcase 1: read miss - cache 0, index 0
+  // testcase 1: Snoop Hit, Cache 0 requestor, cache 1 requestee
   testcase = 1;
 
   // testcase inputs
+  cache0.cctrans = 1;
+  cache0.dREN    = 1;
+  cache1.ccwrite = 1;
+  mcif.dwait     = 1;
+  #(PERIOD*3);
+  mcif.dwait      = 0;
+  #(PERIOD)
+  mcif.dwait  = 1;
+  #(PERIOD*3);
+  mcif.dwait   = 0;  
 
+// ----------------------------------------- // testcase 1
 
-
-  // // testcase trigger point
-  // @(dcif.dhit);
-
-  // // testcase tests
-  // $display("testcase 1:");
-
-  // // testing output
-  // if (expected_dmemload == dcif.dmemload) begin
-  //   $display("Design correctly delivered requested memory on a read miss");
-  // end else begin
-  //   $display("Design INCORRECTLY delivered requested memory on a read miss");
-  // end
-
-  // // testing cache load
-  // if (expected_cacheData1 == DUT.cacheOne[0].data.wordA) begin
-  //   $display("Design correctly loaded first word of requested memory on a read miss");
-  // end else begin
-  //   $display("Design INCORRECTLY loaded first word of requested memory on a read miss");
-  // end
-
-  // if (expected_cacheData2 == DUT.cacheOne[0].data.wordB) begin
-  //   $display("Design correctly loaded second word of requested memory on a read miss");
-  // end else begin
-  //   $display("Design INCORRECTLY loaded second word of requested memory on a read miss");
-  // end
-
-// ----------------------------------------- // reset
-
-  // Reseting inputs & expected values
+  // testcase 1: Snoop Hit, Cache 0 requestor, cache 1 requestee
+  testcase = 1;
 
 
 

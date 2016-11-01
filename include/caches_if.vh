@@ -70,6 +70,15 @@ interface caches_if;
            iwait, iload
   );
 
+  modport cctb(
+    input  dREN, dWEN, daddr, dstore,
+           ccwrite, cctrans,
+           iREN, iaddr, dwait,
+    output dload,
+           ccwait, ccinv, ccsnoopaddr,
+           iwait, iload
+  );
+
 
 endinterface
 
