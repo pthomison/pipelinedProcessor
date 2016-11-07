@@ -3,9 +3,7 @@
 */
 
 // interface include
-//`include "cache_control_if.vh"
-`include "datapath_cache_if.vh"
-`include "caches_if.vh"
+`include "cache_control_if.vh"
 
 // memory types
 `include "cpu_types_pkg.vh"
@@ -45,17 +43,17 @@ import cpu_types_pkg::*;
 	DATAREQA     = 4'h6,
 	DATAREQB     = 4'h7,
 	OVERWRITE    = 4'h8, 
-	XXXX         = 4'h9,
+	HITSTATE     = 4'h9,
 	FLUSH        = 4'hA,
 	STOP         = 4'hB
 	} controllerState;
 
 // Module Variables
 // ----------------------------------------- //
-	frame cacheOne [15:0];
-	frame cacheTwo [15:0];
+	frame cacheOne [7:0];
+	frame cacheTwo [7:0];
 
-	logic recUsed [15:0];
+	logic recUsed [7:0];
 
 	dcachef_t reqAddr;
 
@@ -82,12 +80,14 @@ import cpu_types_pkg::*;
 	logic wordDestRead, wordDestWrite;
 	//flushCacheSelect = 0 for cache1, 1 for cache2
 	logic flushCacheSelect;
-	logic [3:0] flushIdxSelect;
+	logic [2:0] flushIdxSelect;
 	logic hitCache;
+	logic flushWord;
 
 	word_t cdataOne, cdataTwo, cdata;
 
-	word_t hitcounter;
+	word_t hitcount, thitcount;
+	word_t misscount, tmisscount;
 
 	block dirtyData;
 	word_t dirtyAddr;
@@ -127,8 +127,17 @@ import cpu_types_pkg::*;
 			cacheOne    <= '{default:'0};
 		end else begin
 
+			if (dcif.halt == 1) begin
+				//Flushing now
+				if (updateClean == 1 && flushCacheSelect == 0) begin
+					if (cif.dwait == 0 && flushWord == 1) begin
+						cacheOne[reqAddr.idx].dirty       <= 0;
+					end
+				end
+			end
+
 			// Miss; Need to write to next avaliable slot 
-			if (prehit == 0) begin
+			else if (prehit == 0) begin
 				
 
 				if (avaliableCache == 0) begin
@@ -140,16 +149,18 @@ import cpu_types_pkg::*;
 
 					// places new data
 					if (updateRead == 1) begin
-						cacheOne[reqAddr.idx].addr.tag    <= reqAddr.tag;
-						cacheOne[reqAddr.idx].addr.idx    <= reqAddr.idx;
-						cacheOne[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
-						cacheOne[reqAddr.idx].valid       <= 1;
 						cacheOne[reqAddr.idx].dirty       <= 0;
 
 						if (wordDestRead == 0) begin
 							cacheOne[reqAddr.idx].data.wordA <= mload;
 						end else begin
 							cacheOne[reqAddr.idx].data.wordB <= mload;
+							if (cif.dwait == 0) begin
+								cacheOne[reqAddr.idx].addr.tag    <= reqAddr.tag;
+								cacheOne[reqAddr.idx].addr.idx    <= reqAddr.idx;
+								cacheOne[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
+								cacheOne[reqAddr.idx].valid       <= 1;
+							end
 						end
 					end
 
@@ -158,7 +169,7 @@ import cpu_types_pkg::*;
 						cacheOne[reqAddr.idx].addr.tag    <= reqAddr.tag;
 						cacheOne[reqAddr.idx].addr.idx    <= reqAddr.idx;
 						cacheOne[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
-						cacheOne[reqAddr.idx].valid       <= 1;
+						//cacheOne[reqAddr.idx].valid       <= 1;
 						cacheOne[reqAddr.idx].dirty       <= 1;
 
 						if (wordDestWrite == 0) begin
@@ -170,12 +181,7 @@ import cpu_types_pkg::*;
 				end
 			end 
 
-			else if (dcif.halt == 1) begin
-				//Flushing now
-				if (updateClean == 1 && flushCacheSelect == 0) begin
-					cacheOne[reqAddr.idx].dirty       <= 0;
-				end
-			end
+
 
 			// Hit; Need to write to reg if it is a write
 			else begin
@@ -191,7 +197,7 @@ import cpu_types_pkg::*;
 						cacheOne[reqAddr.idx].addr.tag    <= reqAddr.tag;
 						cacheOne[reqAddr.idx].addr.idx    <= reqAddr.idx;
 						cacheOne[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
-						cacheOne[reqAddr.idx].valid       <= 1;
+						//cacheOne[reqAddr.idx].valid       <= 1;
 						cacheOne[reqAddr.idx].dirty       <= 1;
 
 						if (wordDestWrite == 0) begin
@@ -214,10 +220,16 @@ import cpu_types_pkg::*;
 		if(nRST == 0) begin
 			cacheTwo    <= '{default:'0};
 		end else begin
-
+			if (dcif.halt == 1) begin
+				//flushing now
+				if (updateClean == 1 && flushCacheSelect == 1) begin
+					if (cif.dwait == 0 && flushWord == 1) begin
+						cacheTwo[reqAddr.idx].dirty       <= 0;
+					end
+				end
+			end
 			// Miss; Need to write to next avaliable slot 
-			if (prehit == 0) begin
-
+			else if (prehit == 0) begin
 
 				if (avaliableCache == 1) begin
 					if (updateClean == 1) begin
@@ -225,16 +237,20 @@ import cpu_types_pkg::*;
 					end
 
 					if (updateRead == 1) begin
-						cacheTwo[reqAddr.idx].addr.tag    <= reqAddr.tag;
-						cacheTwo[reqAddr.idx].addr.idx    <= reqAddr.idx;
-						cacheTwo[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
-						cacheTwo[reqAddr.idx].valid       <= 1;
-						cacheTwo[reqAddr.idx].dirty       <= 0;
+
 
 						if (wordDestRead == 0) begin
 							cacheTwo[reqAddr.idx].data.wordA <= mload;
 						end else begin
 							cacheTwo[reqAddr.idx].data.wordB <= mload;
+
+							if (cif.dwait == 0) begin
+								cacheTwo[reqAddr.idx].addr.tag    <= reqAddr.tag;
+								cacheTwo[reqAddr.idx].addr.idx    <= reqAddr.idx;
+								cacheTwo[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
+								cacheTwo[reqAddr.idx].dirty       <= 0;
+								cacheTwo[reqAddr.idx].valid       <= 1;
+							end
 						end
 					end
 
@@ -242,24 +258,18 @@ import cpu_types_pkg::*;
 						cacheTwo[reqAddr.idx].addr.tag    <= reqAddr.tag;
 						cacheTwo[reqAddr.idx].addr.idx    <= reqAddr.idx;
 						cacheTwo[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
-						cacheTwo[reqAddr.idx].valid       <= 1;
+						//cacheTwo[reqAddr.idx].valid       <= 1;
 						cacheTwo[reqAddr.idx].dirty       <= 1;
 
 						if (wordDestWrite == 0) begin
 							cacheTwo[reqAddr.idx].data.wordA <= mstore;
 						end else begin
 							cacheTwo[reqAddr.idx].data.wordB <= mstore;
+							
 						end
 					end
 				end
 			end 
-
-			else if (dcif.halt == 1) begin
-				//flushing now
-				if (updateClean == 1 && flushCacheSelect == 1) begin
-					cacheTwo[reqAddr.idx].dirty       <= 0;
-				end
-			end
 
 			// Hit; Need to write to reg if it is a write
 			else begin
@@ -274,7 +284,7 @@ import cpu_types_pkg::*;
 						cacheTwo[reqAddr.idx].addr.tag    <= reqAddr.tag;
 						cacheTwo[reqAddr.idx].addr.idx    <= reqAddr.idx;
 						cacheTwo[reqAddr.idx].addr.bytoff <= reqAddr.bytoff;
-						cacheTwo[reqAddr.idx].valid       <= 1;
+						//cacheTwo[reqAddr.idx].valid       <= 1;
 						cacheTwo[reqAddr.idx].dirty       <= 1;
 
 						if (wordDestWrite == 0) begin
@@ -305,21 +315,18 @@ import cpu_types_pkg::*;
 // Prehit Gates
 // ----------------------------------------- //
 	always_comb begin
-		prehit = 0;
-		prehitOne = 0;
-		prehitTwo = 0;
-		hitCache = 0;
+		prehitOne = (cacheOne[reqAddr.idx].addr.tag == reqAddr.tag) && (cacheOne[reqAddr.idx].valid == 1) && (dcif.dmemWEN || dcif.dmemREN);
+		prehitTwo = (cacheTwo[reqAddr.idx].addr.tag == reqAddr.tag) && (cacheTwo[reqAddr.idx].valid == 1) && (dcif.dmemWEN || dcif.dmemREN);
 
-		if (currState == IDLE) begin
-			prehitOne = (cacheOne[reqAddr.idx].addr.tag == reqAddr.tag) && (cacheOne[reqAddr.idx].valid == 1);
-			prehitTwo = (cacheTwo[reqAddr.idx].addr.tag == reqAddr.tag) && (cacheTwo[reqAddr.idx].valid == 1);
-			prehit = prehitOne || prehitTwo;
-			
-			if (prehitOne == 1) begin
-				hitCache = 0;
-			end else if (prehitTwo == 1) begin
-				hitCache = 1;
-			end
+		prehit = prehitOne || prehitTwo;
+	end
+
+	always_comb begin
+		hitCache  = 0;
+		if (prehitOne == 1) begin
+			hitCache = 0;
+		end else if (prehitTwo == 1) begin
+			hitCache = 1;
 		end
 	end
 
@@ -329,18 +336,17 @@ import cpu_types_pkg::*;
 	assign cdataTwo = (reqAddr.blkoff == 0) ? cacheTwo[reqAddr.idx].data.wordA : cacheTwo[reqAddr.idx].data.wordB;
 	assign cdata    = (prehitOne == 1) ? cdataOne : cdataTwo; // JANKY BAD TERRIBLE CODE; PLEASE FIX
 
-// Destination Selector -- only update on idle
+// Destination Selector -- only update on idle -- BIG ISSUES W/ SYNTHESIS
 // ----------------------------------------- //
 	always_comb begin
+		validOne = cacheOne[reqAddr.idx].valid;
+		validTwo = cacheTwo[reqAddr.idx].valid;
 		avaliableCache = 0;
-		validOne = 0;
-		validTwo = 0;
 
 		if (dcif.halt == 1) begin
 			avaliableCache = flushCacheSelect;
-		end else if (currState == IDLE) begin 
-			validOne = cacheOne[reqAddr.idx].valid;
-			validTwo = cacheTwo[reqAddr.idx].valid;
+		end else begin 
+
 			casez({validOne,validTwo})
 				0: avaliableCache = 0;
 				1: avaliableCache = 0;
@@ -398,16 +404,30 @@ import cpu_types_pkg::*;
 		end
 	end
 
+// Hit Counter Flip Flop
+// ----------------------------------------- //
+	// Handles nRST and advancing state
+	always_ff @(posedge CLK, negedge nRST) begin
+		if(nRST == 0) begin
+			hitcount <=0;
+			misscount <=0;
+		end else begin
+			hitcount <= thitcount;
+			misscount <= tmisscount;
+		end
+	end
+
 // Cache Controller Next State Logic
 // ----------------------------------------- //
 	always_comb begin
 		nextState = IDLE;
-		hitcounter = 0;
-
+		thitcount = hitcount;
+		tmisscount = misscount;
 		if (!nRST) begin
 			// On Reset
 			nextState = IDLE;
-			hitcounter = 0;
+			thitcount = 0;
+			tmisscount = 0;
 		end else if (currState == IDLE) begin
 			if (dcif.halt == 1) begin
 				// Flushing
@@ -421,13 +441,10 @@ import cpu_types_pkg::*;
 				// Read Hit
 				nextState = READHIT;
 				// Logging Hit
-				hitcounter = hitcounter + 1;
 
 			end else if (dcif.dmemWEN == 1 && prehit == 1) begin
 				// Write Hit
 				nextState = OVERWRITE;
-				// Logging Hit
-				hitcounter = hitcounter + 1;
 
 			end else if (destinationDirty == 0) begin
 				// Any Miss; Destination is NOT dirty
@@ -458,12 +475,14 @@ import cpu_types_pkg::*;
 				nextState = DATAREQA;
 			end
 		end else if (currState == DATAREQA) begin
-			if (cif.dwait == 1) begin
+			if (cif.dwait == 0) begin
+				// Memory Ops are done
+				tmisscount = misscount + 1;
+				nextState = DATAREQB;
+			end else if (cif.dwait == 1) begin
 				// Waiting for Memory Ops
 				nextState = DATAREQA;
-			end else begin
-				// Memory Ops are done
-				nextState = DATAREQB;
+				tmisscount = misscount;
 			end
 		end else if (currState == DATAREQB) begin
 			if (cif.dwait == 1) begin
@@ -475,6 +494,7 @@ import cpu_types_pkg::*;
 			end else begin
 				// Memory Ops are done && Reading
 				nextState = IDLE;
+				
 			end
 		end else if (currState == OVERWRITE) begin
 			// Signal the system
@@ -482,19 +502,15 @@ import cpu_types_pkg::*;
 		end else if (currState == READHIT) begin
 			// Wait for next signal
 			nextState = IDLE;
-			// if (dcif.ihit) begin
-				
-			// end else begin
-			// 	nextState = READHIT;
-			// end
+			// Logging Hit
+			thitcount = hitcount + 1;
+
 		end else if (currState == WRITEHIT) begin
 			// Wait for next signal
 			nextState = IDLE;
-			// if (dcif.ihit) begin
-			// 	nextState = IDLE;
-			// end else begin
-			// 	nextState = WRITEHIT;
-			// end
+			// Logging Hit
+			thitcount = hitcount + 1;
+			
 		end else if (currState == FLUSH) begin
 			// if anything is dirty, go to dirty clean
 			if (
@@ -506,14 +522,6 @@ import cpu_types_pkg::*;
 				cacheOne[5].dirty == 1 ||
 				cacheOne[6].dirty == 1 ||
 				cacheOne[7].dirty == 1 ||
-				cacheOne[8].dirty == 1 ||
-				cacheOne[9].dirty == 1 ||
-				cacheOne[10].dirty == 1 ||
-				cacheOne[11].dirty == 1 ||
-				cacheOne[12].dirty == 1 ||
-				cacheOne[13].dirty == 1 ||
-				cacheOne[14].dirty == 1 ||
-				cacheOne[15].dirty == 1 ||
 				cacheTwo[0].dirty == 1 ||
 				cacheTwo[1].dirty == 1 ||
 				cacheTwo[2].dirty == 1 ||
@@ -521,25 +529,83 @@ import cpu_types_pkg::*;
 				cacheTwo[4].dirty == 1 ||
 				cacheTwo[5].dirty == 1 ||
 				cacheTwo[6].dirty == 1 ||
-				cacheTwo[7].dirty == 1 ||
-				cacheTwo[8].dirty == 1 ||
-				cacheTwo[9].dirty == 1 ||
-				cacheTwo[10].dirty == 1 ||
-				cacheTwo[11].dirty == 1 ||
-				cacheTwo[12].dirty == 1 ||
-				cacheTwo[13].dirty == 1 ||
-				cacheTwo[14].dirty == 1 ||
-				cacheTwo[15].dirty == 1
+				cacheTwo[7].dirty == 1 
 			) begin
 				nextState = DIRTYCLEANA;
 			end else begin
-				nextState = STOP;
+				nextState = HITSTATE;
+			end
+		end else if (currState == HITSTATE) begin
+			if (cif.dwait == 0) begin
+				nextState = STOP; 
+			end else begin
+				nextState = HITSTATE; 
 			end
 		end else if (currState == STOP) begin
 			// Stops the system
 			nextState = STOP;
 		end 
 	end
+
+
+always_comb begin
+		flushCacheSelect = 0;
+		flushIdxSelect   = 0;
+	if (dcif.halt) begin
+		if (cacheOne[0].dirty == 1) begin
+			flushCacheSelect = 0;
+			flushIdxSelect   = 0;
+		end else if (cacheOne[1].dirty == 1) begin
+			flushCacheSelect = 0;
+			flushIdxSelect   = 1;
+		end else if (cacheOne[2].dirty == 1) begin
+			flushCacheSelect = 0;
+			flushIdxSelect   = 2;
+		end else if (cacheOne[3].dirty == 1) begin
+			flushCacheSelect = 0;
+			flushIdxSelect   = 3;
+		end else if (cacheOne[4].dirty == 1) begin
+			flushCacheSelect = 0;
+			flushIdxSelect   = 4;
+		end else if (cacheOne[5].dirty == 1) begin
+			flushCacheSelect = 0;
+			flushIdxSelect   = 5;
+		end else if (cacheOne[6].dirty == 1) begin
+			flushCacheSelect = 0;
+			flushIdxSelect   = 6;
+		end else if (cacheOne[7].dirty == 1) begin
+			flushCacheSelect = 0;
+			flushIdxSelect   = 7;
+		end else if (cacheTwo[0].dirty == 1) begin
+			flushCacheSelect = 1;
+			flushIdxSelect   = 0;
+		end else if (cacheTwo[1].dirty == 1) begin
+			flushCacheSelect = 1;
+			flushIdxSelect   = 1;
+		end else if (cacheTwo[2].dirty == 1) begin
+			flushCacheSelect = 1;
+			flushIdxSelect   = 2;
+		end else if (cacheTwo[3].dirty == 1) begin
+			flushCacheSelect = 1;
+			flushIdxSelect   = 3;
+		end else if (cacheTwo[4].dirty == 1) begin
+			flushCacheSelect = 1;
+			flushIdxSelect   = 4;
+		end else if (cacheTwo[5].dirty == 1) begin
+			flushCacheSelect = 1;
+			flushIdxSelect   = 5;
+		end else if	(cacheTwo[6].dirty == 1) begin
+			flushCacheSelect = 1;
+			flushIdxSelect   = 6;
+		end else if (cacheTwo[7].dirty == 1) begin
+			flushCacheSelect = 1;
+			flushIdxSelect   = 7;
+		end
+	end else begin
+		flushCacheSelect = 1'bx;
+		flushIdxSelect = 1'bx;
+	end
+end
 
 // Cache Controller Control Signals
 // ----------------------------------------- //
@@ -562,8 +628,8 @@ import cpu_types_pkg::*;
 		updateWrite      = 0;
 		updateRecentUsed = 0;
 		updateClean		 = 0; //new
-		flushCacheSelect = 0;
-		flushIdxSelect   = 0;
+		flushWord        = 0;
+
 
 		if (currState == IDLE) begin
 			// do nothing
@@ -574,6 +640,7 @@ import cpu_types_pkg::*;
 			updateClean   = 1;
 			cif.daddr     = dirtyAddr;
 			cif.dstore    = dirtyData.wordA;
+			flushWord     = 0;
 
 		end else if (currState == DIRTYCLEANB) begin
 			// Writes Dirty Data (second word) Back To Memory
@@ -581,6 +648,7 @@ import cpu_types_pkg::*;
 			updateClean   = 1;
 			cif.daddr     = dirtyAddr + 4;
 			cif.dstore    = dirtyData.wordB;
+			flushWord     = 1;
 
 		end else if (currState == DATAREQA) begin
 			// Requests First Block of Data
@@ -615,104 +683,14 @@ import cpu_types_pkg::*;
 		end else if (currState == FLUSH) begin
 			// Write any data to memory if dirty
 			// Start with cache one
-			if (cacheOne[0].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 0;
-			end else if (cacheOne[1].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 1;
-			end else if (cacheOne[2].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 2;
-			end else if (cacheOne[3].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 3;
-			end else if (cacheOne[4].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 4;
-			end else if (cacheOne[5].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 5;
-			end else if (cacheOne[6].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 6;
-			end else if (cacheOne[7].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 7;
-			end else if (cacheOne[8].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 8;
-			end else if (cacheOne[9].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 9;
-			end else if (cacheOne[10].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 10;
-			end else if (cacheOne[11].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 11;
-			end else if (cacheOne[12].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 12;
-			end else if (cacheOne[13].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 13;
-			end else if (cacheOne[14].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 14;
-			end else if (cacheOne[15].dirty == 1) begin
-				flushCacheSelect = 0;
-				flushIdxSelect   = 15;
-			end else if (cacheTwo[0].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 0;
-			end else if (cacheTwo[1].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 1;
-			end else if (cacheTwo[2].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 2;
-			end else if (cacheTwo[3].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 3;
-			end else if (cacheTwo[4].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 4;
-			end else if (cacheTwo[5].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 5;
-			end else if	(cacheTwo[6].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 6;
-			end else if (cacheTwo[7].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 7;
-			end else if (cacheTwo[8].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 8;
-			end else if (cacheTwo[9].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 9;
-			end else if (cacheTwo[10].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 10;
-			end else if (cacheTwo[11].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 11;
-			end else if (cacheTwo[12].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 12;
-			end else if	(cacheTwo[13].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 13;
-			end else if (cacheTwo[14].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 14;
-			end else if (cacheTwo[15].dirty == 1) begin
-				flushCacheSelect = 1;
-				flushIdxSelect   = 15;
-			end
+			// flushCacheSelect = 0;
+			// flushIdxSelect   = 0;
 
+
+		end else if (currState == HITSTATE) begin
+			cif.dWEN      = 1;
+			cif.daddr     = 32'h00003100;
+			cif.dstore    = hitcount-misscount;
 		end else if (currState == STOP) begin
 		// Stop
 			dcif.flushed  = 1;
